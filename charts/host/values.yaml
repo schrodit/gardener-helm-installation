@@ -13,7 +13,7 @@ apiserver:
 ############
 # Identity #
 ############
-identitiy:
+identity:
   # image:
   #   repository: 
   #   tag: 
