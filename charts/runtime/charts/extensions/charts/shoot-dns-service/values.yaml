@@ -1,0 +1,7 @@
+
+global: false
+
+providerConfig:
+  values:
+    image:
+      tag: v1.17.0

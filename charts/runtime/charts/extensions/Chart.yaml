@@ -1,6 +1,6 @@
 apiVersion: v2
-name: runtime
-description: Configures all gardener related resources in the virtual cluster
+name: extensions
+description: Contains all gardener extensions to be installed.
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -24,5 +24,9 @@ version: 0.1.0
 appVersion: "0.1.0"
 
 dependencies:
-- name: extensions
+- name: shoot-dns-service
   version: "0.1.0"
+  condition: shoot-dns-service.enabled
+- name: shoot-cert-service
+  version: "0.1.0"
+  condition: shoot-cert-service.enabled
