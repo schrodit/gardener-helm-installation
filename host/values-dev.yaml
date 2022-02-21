@@ -1,0 +1,11 @@
+
+host: "myexample.com" # gardener.mydomain.cloud
+
+gardenerDomainPrefix: gardener
+
+
+identity:
+  dashboardClientSecret: "abc"
+  kubectlClientSecret: "edf"
+  staticPassword: ~
+  connectors: ~

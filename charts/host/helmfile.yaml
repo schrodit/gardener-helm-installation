@@ -1,0 +1,32 @@
+templates:
+  default: &default
+    # This prevents helmfile exiting when it encounters a missing file
+    # Valid values are "Error", "Warn", "Info", "Debug". The default is "Error"
+    # Use "Debug" to make missing files errors invisible at the default log level(--log-level=INFO)
+    missingFileHandler: Warn
+
+  gardener: &gardener
+    namespace: garden
+    # This prevents helmfile exiting when it encounters a missing file
+    # Valid values are "Error", "Warn", "Info", "Debug". The default is "Error"
+    # Use "Debug" to make missing files errors invisible at the default log level(--log-level=INFO)
+    missingFileHandler: Warn
+    createNamespace: true
+
+repositories:
+- name: kubernetes
+  url: https://kubernetes.github.io/ingress-nginx
+
+releases:
+- name: network-policies
+  <<: *gardener
+  chart: ./charts/network-policies
+
+- name: ingress
+  <<: *default
+  namespace: kube-system
+  chart: kubernetes/ingress-nginx
+
+- name: identity
+  <<: *gardener
+  chart: ./charts/identity

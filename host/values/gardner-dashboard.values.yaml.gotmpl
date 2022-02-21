@@ -1,0 +1,34 @@
+apiServerUrl: {{ template "apiserverHost" }}
+apiServerCa: ""
+sessionSecret: {{ required "requires session secret" .Values.gardenerDashboard.sessionSecret }}
+ingress:
+    tls:
+        secretName: {{ .Values.tls.wildcardSecretName }}
+#  hosts: []
+#  annotations: {}
+image:
+#   repository: ""
+    tag: 1.52.3
+#   pullPolicy: ""
+oidc:
+    issuerUrl: {{ template "issueUrl" . }}
+    # ca: ""
+    clientSecret: {{ required "gardener dashboard client secret required" .Values.identity.dashboardClientSecret }}
+    public:
+        clientId: kube-kubectl
+        clientSecret: {{ required "gardener dashboard kubectl client secret required" .Values.identity.kubectlClientSecret }}
+kubeconfig: ""
+podLabels:
+    networking.gardener.cloud/to-dns: allowed
+    networking.gardener.cloud/to-garden-kube-apiserver: allowed
+    networking.gardener.cloud/to-identity: allowed
+    networking.gardener.cloud/to-ingress: allowed
+    networking.gardener.cloud/to-world: allowed
+    networking.gardener.cloud/to-inside: allowed
+# gitHub: ""
+frontendConfig:
+seedCandidateDeterminationStrategy: SameRegion
+features:
+    terminalEnabled: false
+# terminal: {}
+# resources: {}
