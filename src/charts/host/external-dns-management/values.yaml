@@ -1,0 +1,363 @@
+nameOverride: ""
+fullnameOverride: dns-controller-manager
+
+replicaCount: 1
+
+image:
+  repository: eu.gcr.io/gardener-project/dns-controller-manager
+  tag: v0.12.0
+  pullPolicy: IfNotPresent
+
+env: []
+
+resources:
+  requests:
+   cpu: 100m
+   memory: 64Mi
+  limits:
+   cpu: 200m
+   memory: 128Mi
+
+vpa:
+  enabled: true
+  minAllowed:
+    cpu: 50m
+    memory: 50Mi
+  updatePolicy:
+    updateMode: "Auto"
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+createCRDs: false
+
+#serviceAccountAnnotations:
+#  annotkey1: annotvalue1
+#  annotkey2: annotvalue2
+
+## optionally deploy predefined DNSHostedZonePolicy
+#hostedZonePolicies:
+#  - name: policy1
+#    selector:
+#      domainNames:
+#      - domain.of.my.first.zone.com
+#      - domain.of.my.second.zone.org
+#      #providerTypes:
+#      #- aws-route53
+#      #zoneIDs:
+#      #- z12345
+#    policy:
+#      zoneStateCacheTTL: 2h
+
+configuration:
+  # acceptedMaintainers: UNMANAGED
+  # advancedBatchSize:
+  # advancedMaxRetries:
+  # alicloudDNSAdvancedBatchSize:
+  # alicloudDNSAdvancedMaxRetries:
+  # alicloudDNSRatelimiterBurst:
+  # alicloudDNSRatelimiterEnabled:
+  # alicloudDNSRatelimiterQps:
+  # annotationDefaultPoolSize:
+  # annotationPoolSize:
+  # annotationSetup:
+  # awsRoute53AdvancedBatchSize:
+  # awsRoute53AdvancedMaxRetries:
+  # awsRoute53RatelimiterBurst:
+  # awsRoute53RatelimiterEnabled:
+  # awsRoute53RatelimiterQps:
+  # azureDNSAdvancedBatchSize:
+  # azureDNSAdvancedMaxRetries:
+  # azureDNSRatelimiterBurst:
+  # azureDNSRatelimiterEnabled:
+  # azureDNSRatelimiterQps:
+  # azurePrivateDnsAdvancedBatchSize:
+  # azurePrivateDnsAdvancedMaxRetries:
+  # azurePrivateDnsRatelimiterBurst:
+  # azurePrivateDnsRatelimiterEnabled:
+  # azurePrivateDnsRatelimiterQps:
+  # bindAddressHttp:
+  # cacheTtl: 120
+  # cloudflareDNSAdvancedBatchSize:
+  # cloudflareDNSAdvancedMaxRetries:
+  # cloudflareDNSRatelimiterBurst:
+  # cloudflareDNSRatelimiterEnabled:
+  # cloudflareDNSRatelimiterQps:
+  # compoundAdvancedBatchSize:
+  # compoundAdvancedMaxRetries:
+  # compoundAlicloudDnsAdvancedBatchSize:
+  # compoundAlicloudDnsAdvancedMaxRetries:
+  # compoundAlicloudDnsRatelimiterBurst:
+  # compoundAlicloudDnsRatelimiterEnabled:
+  # compoundAlicloudDnsRatelimiterQps:
+  # compoundAwsRoute53AdvancedBatchSize:
+  # compoundAwsRoute53AdvancedMaxRetries:
+  # compoundAwsRoute53RatelimiterBurst:
+  # compoundAwsRoute53RatelimiterEnabled:
+  # compoundAwsRoute53RatelimiterQps:
+  # compoundAzureDnsAdvancedBatchSize:
+  # compoundAzureDnsAdvancedMaxRetries:
+  # compoundAzureDnsRatelimiterBurst:
+  # compoundAzureDnsRatelimiterEnabled:
+  # compoundAzureDnsRatelimiterQps:
+  # compoundAzurePrivateDnsAdvancedBatchSize:
+  # compoundAzurePrivateDnsAdvancedMaxRetries:
+  # compoundAzurePrivateDnsRatelimiterBurst:
+  # compoundAzurePrivateDnsRatelimiterEnabled:
+  # compoundAzurePrivateDnsRatelimiterQps:
+  # compoundCacheTtl: 120
+  # compoundCloudflareDnsAdvancedBatchSize:
+  # compoundCloudflareDnsAdvancedMaxRetries:
+  # compoundCloudflareDnsRatelimiterBurst:
+  # compoundCloudflareDnsRatelimiterEnabled:
+  # compoundCloudflareDnsRatelimiterQps:
+  # compoundDefaultPoolSize: 2
+  # compoundDisableZoneStateCaching: false
+  # compoundDnsClass: "gardendns"
+  # compoundDnsDelay: 10s
+  # compoundDnsPoolResyncPeriod: 30s
+  # compoundDnsPoolSize: 1
+  # compoundDryRun: false
+  # compoundGoogleClouddnsAdvancedBatchSize:
+  # compoundGoogleClouddnsAdvancedMaxRetries:
+  # compoundGoogleClouddnsRatelimiterBurst:
+  # compoundGoogleClouddnsRatelimiterEnabled:
+  # compoundGoogleClouddnsRatelimiterQps:
+  # compoundIdentifier: ""
+  # compoundInfobloxDnsAdvancedBatchSize:
+  # compoundInfobloxDnsAdvancedMaxRetries:
+  # compoundInfobloxDnsRatelimiterBurst:
+  # compoundInfobloxDnsRatelimiterEnabled:
+  # compoundInfobloxDnsRatelimiterQps:
+  # compoundLockStatusCheckPeriod:
+  # compoundNetlifyDnsAdvancedBatchSize:
+  # compoundNetlifyDnsAdvancedMaxRetries:
+  # compoundNetlifyDnsRatelimiterBurst:
+  # compoundNetlifyDnsRatelimiterEnabled:
+  # compoundNetlifyDnsRatelimiterQps:
+  # compoundOpenstackDesignateAdvancedBatchSize:
+  # compoundOpenstackDesignateAdvancedMaxRetries:
+  # compoundOpenstackDesignateRatelimiterBurst:
+  # compoundOpenstackDesignateRatelimiterEnabled:
+  # compoundOpenstackDesignateRatelimiterQps:
+  # compoundOwneridsPoolSize: 1
+  # compoundPoolResyncPeriod:
+  # compoundPoolSize:
+  # compoundProviderTypes:
+  # compoundProvidersPoolResyncPeriod: 30s
+  # compoundProvidersPoolSize: 2
+  # compoundRatelimiterBurst:
+  # compoundRatelimiterEnabled:
+  # compoundRatelimiterQps:
+  # compoundRemoteAdvancedBatchSize:
+  # compoundRemoteAdvancedMaxRetries:
+  # compoundRemoteRatelimiterBurst:
+  # compoundRemoteRatelimiterEnabled:
+  # compoundRemoteRatelimiterQps:
+  # compoundRescheduleDelay: 120s
+  # compoundSecretsPoolSize: 2
+  # compoundSetup: 10
+  # compoundStatisticPoolSize:
+  # compoundTtl: 120
+  # compoundZonepoliciesPoolSize:
+  # config:
+  controllers: all
+  # cpuprofile: ""
+  # defaultPoolResyncPeriod:
+  # defaultPoolSize:
+  # disableNamespaceRestriction: false
+  # disableZoneStateCaching: false
+  # dnsClass: "gardendns"
+  # dnsDelay: 10s
+  # dnsTargetClass: ""
+  # dnsPoolResyncPeriod: 30s
+  # dnsPoolSize: 1
+  # dnsentrySourceDefaultPoolResyncPeriod: 30s
+  # dnsentrySourceDefaultPoolSize: 2
+  # dnsentrySourceDnsClass: "gardendns"
+  # dnsentrySourceDnsTargetClass: ""
+  # dnsentrySourceExcludeDomains: google.com
+  # dnsentrySourceKey: ""
+  # dnsentrySourcePoolResyncPeriod:
+  # dnsentrySourcePoolSize:
+  # dnsentrySourceTargetCreatorLabelName: ""
+  # dnsentrySourceTargetCreatorLabelValue: ""
+  # dnsentrySourceTargetNamePrefix: ""
+  # dnsentrySourceTargetNamespace: ""
+  # dnsentrySourceTargetOwnerId: ""
+  # dnsentrySourceTargetOwnerObject:
+  # dnsentrySourceTargetRealms: ""
+  # dnsentrySourceTargetSetIgnoreOwners: false
+  # dnsentrySourceTargetsPoolSize: 2
+  # dnsproviderReplicationDefaultPoolResyncPeriod:
+  # dnsproviderReplicationDefaultPoolSize:
+  # dnsproviderReplicationDnsClass:
+  # dnsproviderReplicationDnsTargetClass:
+  # dnsproviderReplicationPoolResyncPeriod:
+  # dnsproviderReplicationPoolSize:
+  # dnsproviderReplicationTargetCreatorLabelName:
+  # dnsproviderReplicationTargetCreatorLabelValue:
+  # dnsproviderReplicationTargetNamePrefix:
+  # dnsproviderReplicationTargetNamespace:
+  # dnsproviderReplicationTargetRealms:
+  # dnsproviderReplicationTargetsPoolSize:
+  # enableProfiling:
+  # excludeDomains: google.com
+  # forceCrdUpdate: false
+  # googleCloudDNSAdvancedBatchSize:
+  # googleCloudDNSAdvancedMaxRetries:
+  # googleCloudDNSRatelimiterBurst:
+  # googleCloudDNSRatelimiterEnabled:
+  # googleCloudDNSRatelimiterQps:
+  # gracePeriod: 0
+  # infobloxDNSAdvancedBatchSize:
+  # infobloxDNSAdvancedMaxRetries:
+  # infobloxDNSRatelimiterBurst:
+  # infobloxDNSRatelimiterEnabled:
+  # infobloxDNSRatelimiterQps:
+  # ingressDNSDefaultPoolResyncPeriod: 30s
+  # ingressDNSDefaultPoolSize: 2
+  # ingressDNSDnsClass: "gardendns"
+  # ingressDNSDnsTargetClass: ""
+  # ingressDNSExcludeDomains: google.com
+  # ingressDNSKey: ""
+  # ingressDNSPoolResyncPeriod:
+  # ingressDNSPoolSize:
+  # ingressDNSTargetCreatorLabelName: ""
+  # ingressDNSTargetCreatorLabelValue: ""
+  # ingressDNSTargetNamePrefix: ""
+  # ingressDNSTargetNamespace: ""
+  # ingressDNSTargetOwnerId: ""
+  # ingressDNSTargetOwnerObject:
+  # ingressDNSTargetRealms: ""
+  # ingressDNSTargetSetIgnoreOwners: false
+  # ingressDNSTargetsPoolSize: 2
+  # key: ""
+  # kubeconfig: ""
+  # kubeconfigDisableDeployCrds: false
+  # kubeconfigId: ""
+  # kubeconfigMigrationIds: ""
+  leaseDuration: 30s
+  # leaseName:
+  # leaseRenewDeadline:
+  # leaseResourceLock:
+  # leaseRetryPeriod:
+  # lockStatusCheckPeriod:
+  # logLevel: info
+  # maintainer:
+  # namespace: default
+  # namespaceLocalAccessOnly: false
+  # netlifyDnsAdvancedBatchSize:
+  # netlifyDnsAdvancedMaxRetries:
+  # netlifyDnsRatelimiterBurst:
+  # netlifyDnsRatelimiterEnabled:
+  # netlifyDnsRatelimiterQps:
+  # omitLease: false
+  # openstackDesignateAdvancedBatchSize:
+  # openstackDesignateAdvancedMaxRetries:
+  # openstackDesignateRatelimiterBurst:
+  # openstackDesignateRatelimiterEnabled:
+  # openstackDesignateRatelimiterQps:
+  # owneridsPoolSize:
+  # pluginFile:
+  # poolResyncPeriod: 30s
+  # poolSize: 2
+  # providerTypes: ""
+  # providers: ""
+  # providersDisableDeployCrds: false
+  # providersId: ""
+  # providersMigrationIds: ""
+  # providersPoolResyncPeriod: 30s
+  # providersPoolSize: 1
+  # ratelimiterBurst:
+  # ratelimiterEnabled:
+  # ratelimiterQps:
+  # remoteAdvancedBatchSize:
+  # remoteAdvancedMaxRetries:
+  # remoteRatelimiterBurst:
+  # remoteRatelimiterEnabled:
+  # remoteRatelimiterQps:
+  # rescheduleDelay: 120s
+  # secretsPoolSize:
+  serverPortHttp: 8080
+  # serviceDNSDefaultPoolResyncPeriod: 30s
+  # serviceDNSDefaultPoolSize: 2
+  # serviceDNSDnsClass: "gardendns"
+  # serviceDNSDnsTargetClass: ""
+  # serviceDNSExcludeDomains: google.com
+  # serviceDNSKey: ""
+  # serviceDNSPoolResyncPeriod:
+  # serviceDNSPoolSize:
+  # serviceDNSTargetCreatorLabelName: ""
+  # serviceDNSTargetCreatorLabelValue: ""
+  # serviceDNSTargetNamePrefix: ""
+  # serviceDNSTargetNamespace: ""
+  # serviceDNSTargetOwnerId: ""
+  # serviceDNSTargetOwnerObject:
+  # serviceDNSTargetRealms: ""
+  # serviceDNSTargetSetIgnoreOwners: false
+  # serviceDNSTargetsPoolSize: 2
+  # setup: 10
+  # statisticPoolSize:
+  # target: ""
+  # targetCreatorLabelName: ""
+  # targetCreatorLabelValue: ""
+  # targetNamePrefix: ""
+  # targetNamespace: ""
+  # targetOwnerId: ""
+  # targetOwnerObject:
+  # targetRealms: ""
+  # targetSetIgnoreOwners: false
+  # targetDisableDeployCrds: false
+  # targetId: ""
+  # targetMigrationIds: ""
+  # targetsPoolSize:
+  ttl: 120
+  # version:
+  # zonepoliciesPoolSize:
+
+additionalConfiguration: []
+
+gardener:
+  version: ""
+  garden:
+    clusterIdentity: garden
+  seed:
+    identity: ""
+    provider: ""
+
+security:
+  apparmorEnabled: false
+  seccompEnabled: false
+
+custom: {}
+# you may want to mount an additional volume if AWS_USE_CREDENTIALS_CHAIN is set
+#custom:
+#  volumes:
+#    - name: token
+#      secret:
+#        defaultMode: 420
+#        secretName: my-token
+#  volumeMounts:
+#    - name: token
+#      mountPath: /token
+
+remoteaccess:
+  enabled: false
+#  service:
+#    annotations:
+#      #dns.gardener.cloud/class: garden
+#      dns.gardener.cloud/dnsnames: my.foo.bar.com
+#      #cert.gardener.cloud/purpose: managed
+#      #cert.gardener.cloud/secretname: remoteaccess-service
+#    type: LoadBalancer
+#  certs:
+#    ca:
+#      cert: LS0t... # CA used for client certs
+#      #key: LS0t... # only needed if remoteaccesscertificates controller is enabled
+#    server:
+#      #secretName: remoteaccess-service # if managed server certificate is used
+#      cert: LS0t... # only needed if certificate is not managed
+#      key: LS0t...  # only needed if certificate is not managed
+#  port: 7777

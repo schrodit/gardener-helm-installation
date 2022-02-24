@@ -1,0 +1,20 @@
+
+host: "" # gardener.mydomain.cloud
+
+ingressPrefix: ""
+gardenerDomainPrefix: gardener
+apiserverDomainPrefix: api
+
+tls:
+  wildcardSecretName: "gardener-tls-wildcard-secret"
+
+dashboardClientSecret: "aaaaa"
+
+identity:
+  dashboardClientSecret: ""
+  kubectlClientSecret: ""
+  staticPassword: ""
+  connectors: ""
+
+gardenerDashboard:
+  sessionSecret: ~

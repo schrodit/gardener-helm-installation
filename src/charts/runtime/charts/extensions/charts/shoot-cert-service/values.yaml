@@ -1,0 +1,21 @@
+
+global: false
+
+providerConfig:
+  values:
+    image:
+      tag: v1.20.0
+    
+    certificateConfig:
+      defaultIssuer:
+        acme:
+            email: foo@example.com
+            server: https://acme-v02.api.letsencrypt.org/directory
+        name: default-issuer
+    
+    imageVectorOverwrite: |
+      images:
+      - name: cert-management
+        sourceRepository: github.com/gardener/cert-management
+        repository: eu.gcr.io/gardener-project/cert-controller-manager
+        tag: "v0.8.7"

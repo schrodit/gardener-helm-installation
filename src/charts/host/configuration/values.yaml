@@ -1,0 +1,18 @@
+
+
+secretName: ''
+namespaces: []
+secretNamespaces: []
+dnsControllerClass: ''
+
+providerType: ''
+providerCredentials: ~
+
+commonDnsName: ''
+dnsNames: []
+includesDnsNames: []
+
+acme:
+  email: ''
+  server: https://acme-staging-v02.api.letsencrypt.org/directory
+  dns01Solver: ~

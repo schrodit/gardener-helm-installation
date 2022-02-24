@@ -1,0 +1,34 @@
+{
+  "name": "gardener-installation",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "repository": "git@github.com:schrodit/gardener-helm-installation.git",
+  "author": "schrodit <mail@timschrodi.tech>",
+  "license": "MIT",
+  "scripts": {
+    "setup": "node --loader ts-node/esm ./index.ts"
+  },
+  "dependencies": {
+    "@0cfg/utils-common": "^0.1.8",
+    "@0cfg/utils-node": "^0.1.8",
+    "@kubernetes/client-node": "^0.16.3",
+    "@types/node-forge": "^1.0.0",
+    "axios": "^0.26.0",
+    "commander": "^9.0.0",
+    "node-forge": "^1.2.1",
+    "validator": "^13.7.0",
+    "which": "^2.0.2",
+    "winston": "^3.6.0",
+    "yaml": "^1.10.2"
+  },
+  "devDependencies": {
+    "@types/argparse": "^2.0.10",
+    "@types/commander": "^2.12.2",
+    "@types/node": "^17.0.21",
+    "@types/validator": "^13.7.1",
+    "@types/winston": "^2.4.4",
+    "@types/yargs": "^17.0.8",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
+  }
+}

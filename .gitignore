@@ -1,3 +1,9 @@
 dev
 tmp
 **/helmfile-*
+
+node_modules
+
+# gardener installer related directories.
+gen
+state

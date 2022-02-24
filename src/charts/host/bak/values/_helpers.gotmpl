@@ -1,0 +1,32 @@
+{{- define "ingressDomain" }}
+{{- if .Values.ingressPrefix }}
+{{ .Values.ingressPrefix }}.{{ .Values.host }}
+{{- else }}
+{{ .Values.host }}
+{{- end }}
+{{- end }}
+
+{{- define "gardenerDomain" }}
+{{- if .Values.gardenerDomainPrefix }}
+{{ .Values.ingressPrefix }}.{{ template "ingressDomain" . }}
+{{- else }}
+{{ .Values.host }}
+{{- end }}
+{{- end }}
+
+{{- define "apiserverHost" }}
+{{- if .Values.apiserverDomainPrefix }}
+{{ .Values.apiserverDomainPrefix }}.{{ template "ingressDomain" . }}
+{{- else }}
+{{ .Values.host }}
+{{- end }}
+{{- end }}
+
+{{- define "issuerUrl" }}
+"https://{{ template "gardenerDomain" . }}/oidc"
+{{- end }}
+
+ingressDomain: {{ template "ingressDomain" . }}
+gardenerDomain: {{ template "gardenerDomain" . }}
+apiserverHost: {{ template "apiserverHost" . }}
+issuerUrl: {{ template "issuerUrl" . }}

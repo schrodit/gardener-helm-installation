@@ -1,0 +1,18 @@
+{{ $global := . }}
+{{- range .Values.namespaces }}
+---
+apiVersion: dns.gardener.cloud/v1alpha1
+kind: DNSProvider
+metadata:
+  name: gardener-default
+  namespace: {{ . }}
+  annotations:
+    dns.gardener.cloud/class: {{ $global.Values.dnsControllerClass }}
+spec:
+  type: {{ required "Provider type is required" $global.Values.providerType }}
+  secretRef:
+    name: gardener-default
+  domains:
+    include: {{ $global.Values.includesDnsNames | toJson }}
+
+{{- end }}
