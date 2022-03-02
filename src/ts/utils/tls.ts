@@ -25,13 +25,13 @@ export interface TLS extends KeypairPEM {
     cert: string,
 }
 
-export interface Keypair {
-    publicKey: Buffer,
-    privateKey: Buffer,
+export interface CA extends TLS {
+    attributes: forge.pki.CertificateField[]
 }
 
 export interface CSR {
     cn: string,
+    organization?: string,
     altNames?: string[],
     extensions?: Record<string, any>[],
 }
@@ -63,7 +63,7 @@ export const generateKey = (): KeypairPEM => {
     }
 }
 
-export const createSelfSignedCA = (cn: string) => {
+export const createSelfSignedCA = (cn: string): CA => {
     const keypair = pki.rsa.generateKeyPair(RSA_BITS);
 
     const cert = pki.createCertificate();
@@ -77,16 +77,47 @@ export const createSelfSignedCA = (cn: string) => {
     ];
     cert.setSubject(attrs);
     cert.setIssuer(attrs);
+    cert.setExtensions([
+        {
+            name: 'basicConstraints',
+            cA: true,
+        },
+        {
+            name: 'keyUsage',
+            keyCertSign: true,
+            digitalSignature: true,
+            keyEncipherment: true,
+            dataEncipherment: true
+        },
+        {
+            name: 'extKeyUsage',
+            serverAuth: true,
+            clientAuth: true,
+            codeSigning: true,
+            timeStamping: true,
+        },
+        {
+            name: 'nsCertType',
+            client: true,
+            server: true,
+            email: true,
+            objsign: true,
+            sslCA: true,
+            emailCA: true,
+            objCA: true
+        },
+    ])
     cert.sign(keypair.privateKey);
 
     return {
+        attributes: attrs,
         cert: pki.certificateToPem(cert),
         publicKey: pki.publicKeyToPem(keypair.publicKey),
         privateKey: pki.privateKeyToPem(keypair.privateKey),
     }
 }
 
-export const createClientTLS = (ca: TLS, csr: CSR): TLS => {
+export const createClientTLS = (ca: CA, csr: CSR): TLS => {
     const keypair = pki.rsa.generateKeyPair(RSA_BITS);
 
     const cert = pki.createCertificate();
@@ -98,8 +129,15 @@ export const createClientTLS = (ca: TLS, csr: CSR): TLS => {
     const attrs = [
         {name:'commonName', value: csr.cn},
     ];
+    if (has(csr.organization)) {
+        attrs.push({
+            name: 'organizationName',
+            value: csr.organization!,
+        })
+    }
+
     cert.setSubject(attrs);
-    cert.setIssuer(attrs);
+    cert.setIssuer(ca.attributes);
 
     const extensions = csr.extensions ?? [];
     if (has(csr.altNames)) {
@@ -108,7 +146,7 @@ export const createClientTLS = (ca: TLS, csr: CSR): TLS => {
                 name: 'subjectAltName',
                 altNames: csr.altNames?.map(n => {
                     return {
-                        type: 6,
+                        type: 2, // DNS
                         value: n
                     };
                 }),

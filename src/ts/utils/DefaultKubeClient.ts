@@ -4,6 +4,7 @@ import {has} from '@0cfg/utils-common/lib/has';
 import {KubeClient, KubernetesEventType, WatchObject} from './KubeClient';
 
 export class DefaultKubeClient extends KubernetesObjectApi implements KubeClient {
+    private readonly kubeConfig: KubeConfig;
     private watcher: Watch;
 
     public constructor(kubeConfig: KubeConfig) {
@@ -12,9 +13,14 @@ export class DefaultKubeClient extends KubernetesObjectApi implements KubeClient
             throw new Error('No active cluster defined');
         }
         super(cluster.server);
+        this.kubeConfig = kubeConfig;
         this.setDefaultAuthentication(kubeConfig);
         this.setDefaultNamespace(kubeConfig);
         this.watcher = new Watch(kubeConfig);
+    }
+
+    public getKubeConfig(): KubeConfig {
+        return this.kubeConfig;
     }
 
     public async watch(

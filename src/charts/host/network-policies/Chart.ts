@@ -1,4 +1,4 @@
-import { Chart, ChartPath, Values } from "../../../ts/utils/Helm";
+import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
 import { GardenerNamespace, GeneralValues } from "../../../ts/Values";
 
 

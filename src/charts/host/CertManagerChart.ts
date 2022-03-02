@@ -1,4 +1,4 @@
-import { Chart, RemoteChart, Values } from "../../ts/utils/Helm";
+import { Chart, RemoteChart, Values } from "../../ts/plugins/Helm";
 import { GardenSystemNamespace, GeneralValues } from "../../ts/Values";
 
 

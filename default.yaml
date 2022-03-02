@@ -1,0 +1,8 @@
+landscapeName: gardener-installation
+
+apiserverDomainPrefix: api
+wildcardSecretName: gardener-wildcard-tls
+
+gardener:
+  shootDomainPrefix: shoot
+  seedCandidateDeterminationStrategy: SameRegion

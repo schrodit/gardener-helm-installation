@@ -1,6 +1,6 @@
 import { has } from "@0cfg/utils-common/lib/has";
 import { hasSubscribers } from "diagnostics_channel";
-import { Chart, ChartPath, Values } from "../../../ts/utils/Helm";
+import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
 import { base64EncodeMap } from "../../../ts/utils/kubernetes";
 import { GardenerNamespace, GardenSystemNamespace, GeneralValues, KubeSystemNamespace } from "../../../ts/Values";
 

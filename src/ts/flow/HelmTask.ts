@@ -1,4 +1,4 @@
-import { Chart, Helm } from "../utils/Helm";
+import { Chart, Helm } from "../plugins/Helm";
 import { GeneralValues } from "../Values";
 import { Task } from "./Flow";
 

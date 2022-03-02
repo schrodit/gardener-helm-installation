@@ -1,4 +1,4 @@
-import { Chart, Helm, InstalledRelease, Release } from './utils/Helm';
+import { Chart, Helm, InstalledRelease, Release } from './plugins/Helm';
 import { mkdir, readFile, writeFile, access } from 'fs/promises';
 import yaml from 'yaml';
 import path from 'path';
@@ -18,12 +18,14 @@ import { KubernetesKeyValueState, KubernetesState } from './state/KubernetesStat
 import { DefaultKubeClient } from './utils/DefaultKubeClient';
 import { KubeConfig } from '@kubernetes/client-node';
 import { createLogger } from './log/Logger';
-import { KubeApply, ManagedResources, LocalManifest } from './utils/KubeApply';
+import { KubeApply, ManagedResources, LocalManifest } from './plugins/KubeApply';
 import { KubeClient } from './utils/KubeClient';
 import { VirtualClusterChart } from '../charts/host/virtual-cluster/Chart';
 import { Flow } from './flow/Flow';
 import { HelmTaskFactory } from './flow/HelmTask';
 import { KubeApplyFactory } from './flow/KubeApplyTask';
+import { ExportVirtualClusterAdminKubeconfig } from './tasks/ExportApiserverKubeconfig';
+import { Gardener } from './Gardener';
 
 const log = createLogger('Installation');
 
@@ -33,6 +35,7 @@ export interface InstallationConfig {
     valueFiles: string[];
 };
 
+const defaultValuesFile = './default.yaml'
 const genDir = './gen';
 const stateFile = './state/state.yaml';
 const helmStateFile = './state/helm-state.yaml';
@@ -95,6 +98,7 @@ export class Installation {
                 DefaultNamespace,
             );
         }
+        config.valueFiles = [defaultValuesFile].concat(config.valueFiles);
         const inst = new Installation(kubeClient, config, state, helmState, kubeApplyState);
 
         await inst.install();
@@ -104,7 +108,6 @@ export class Installation {
     private async install(): Promise<void> {
         const values = await generateGardenerInstallationValues(this.state, await this.readValueFiles());
         await this.writeToGen('values.yaml', yaml.stringify(values));
-
 
         const helmTaskFactory = new HelmTaskFactory(values, this.helm);
         const kubeApplyFactory = new KubeApplyFactory(this.kubeApply);
@@ -120,6 +123,18 @@ export class Installation {
             helmTaskFactory.createTask(new EtcdMainChart()),
             helmTaskFactory.createTask(new EtcdEventsChart()),
             helmTaskFactory.createTask(new VirtualClusterChart()),
+            new ExportVirtualClusterAdminKubeconfig(
+                this.kubeClient,
+                values,
+                genDir,
+                this.config.dryRun,
+            ),
+            new Gardener(
+                this.kubeClient,
+                this.helm,
+                values,
+                this.config.dryRun,
+            ),
         );
         
         await flow.execute();

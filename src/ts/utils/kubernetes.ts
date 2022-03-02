@@ -1,5 +1,7 @@
 import { has } from "@0cfg/utils-common/lib/has";
-import { KubernetesObject } from "@kubernetes/client-node";
+import { KubeConfig, KubernetesObject, V1SeccompProfile, V1Secret, V1ServiceAccount } from "@kubernetes/client-node";
+import { createLogger, Logger } from "../log/Logger";
+import { retryWithBackoff } from "./exponentialBackoffRetry";
 import { KubeClient } from "./KubeClient";
 
 
@@ -112,6 +114,72 @@ export const enrichKubernetesError = (resource: KubernetesObject, err: unknown):
     }
     return new Error(`${JSON.stringify(err)} - ${resourceInfo}`);
 };
+
+export const getKubeConfigForServiceAccount = async (client: KubeClient, namespace: string, name: string, log?: Logger): Promise<KubeConfig> => {
+    if (!log) {
+        log = createLogger('getKubeConfigForServiceAccount');
+    }
+    const sa: V1ServiceAccount = {
+        apiVersion: 'v1',
+        kind: 'ServiceAccount',
+        metadata: {
+            name,
+            namespace,
+        },
+    };
+
+    await retryWithBackoff(async (): Promise<boolean> => {
+        try {
+            Object.assign(sa, (await client.read(sa)).body);
+            if (!has(sa.secrets) || sa.secrets.length === 0) {
+                return false;
+            }
+            return true;
+        } catch (error) {
+            log!.error(enrichKubernetesError(sa, error));
+        }
+        return false;
+    });
+
+    const secret: V1Secret = {
+        apiVersion: 'v1',
+        kind: 'Secret',
+        metadata: {
+            name: sa.secrets![0].name,
+            namespace,
+        },
+    };
+    await retryWithBackoff(async (): Promise<boolean> => {
+        try {
+            Object.assign(secret, (await client.read(secret)).body);
+            return true;
+        } catch (error) {
+            log!.error(enrichKubernetesError(sa, error));
+        }
+        return false;
+    });
+
+    const token = secret.data?.token;
+    if (!has(token)) {
+        throw new Error(`service account secret ${secret.metadata?.name} does not contain a token`);
+    }
+
+    const currentCluster = client.getKubeConfig().getCurrentCluster()!;
+
+    const kc = new KubeConfig();
+    kc.addUser({
+        name,
+        token,
+    });
+    kc.addCluster(currentCluster);
+    kc.addContext({
+        name: 'default',
+        user: name,
+        cluster: currentCluster.name,
+    });
+    kc.setCurrentContext('default');
+    return kc;
+}
 
 
 /**

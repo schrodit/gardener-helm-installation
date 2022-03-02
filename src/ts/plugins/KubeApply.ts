@@ -4,9 +4,9 @@ import { createLogger } from "../log/Logger";
 import { KeyValueState } from "../state/State";
 import * as YAML from 'yaml';
 import axios from 'axios';
-import { retryWithBackoff } from "./exponentialBackoffRetry";
-import { createOrUpdate, enrichKubernetesError } from "./kubernetes";
-import { KubeClient } from "./KubeClient";
+import { retryWithBackoff } from "../utils/exponentialBackoffRetry";
+import { createOrUpdate, enrichKubernetesError } from "../utils/kubernetes";
+import { KubeClient } from "../utils/KubeClient";
 
 const log = createLogger('KubeApply');
 
@@ -80,9 +80,16 @@ export class KubeApply {
     public async apply(manifest: Manifest): Promise<void> {
         const manifests = await manifest.getManifests();
 
-        this.state.store(manifest.name,
+        if (this.dryRun) {
+            this.state.store(manifest.name,
+                manifests.map(m => this.getRawManifest(m))
+            );
+            return;
+        }
+
+        await this.state.store(manifest.name,
             await Promise.all(manifests.map(m => this.applyManifest(m)))
-        )
+        );
     }
 
     private async applyManifest(manifest: KubernetesObject): Promise<KubernetesObject> {

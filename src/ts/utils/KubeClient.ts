@@ -1,5 +1,6 @@
 import * as http from 'http';
 import {
+    KubeConfig,
     KubernetesListObject,
     KubernetesObject,
     RequestResult,
@@ -173,6 +174,11 @@ export interface KubeClient {
         callback: (type: KubernetesEventType, apiObj: any, watchObj?: WatchObject) => void,
         done: (err: any) => void,
     ): Promise<RequestResult>
+
+    /**
+     * Returns the currently used kubeconfig
+     */
+    getKubeConfig(): KubeConfig
 
     /**
      * Returns the api path for a kubernetes resource as it is needed by the watch method.

@@ -1,4 +1,4 @@
-import { Chart, RemoteChart, Values } from "../../ts/utils/Helm";
+import { Chart, RemoteChart, Values } from "../../ts/plugins/Helm";
 import { GeneralValues, GardenSystemNamespace } from "../../ts/Values";
 
 
@@ -19,6 +19,9 @@ export class NginxIngressChart extends Chart {
         return {
             class: 'nginx',
             controller: {
+                extraArgs: {
+                    'enable-ssl-passthrough': 'true',
+                },
                 service: {
                     annotations: {
                         'dns.gardener.cloud/class': values.dnsController.class,

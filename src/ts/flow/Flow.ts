@@ -9,7 +9,6 @@ export abstract class Task {
     abstract do(): Promise<void>;
 }
 
-
 /**
  * Flow execution engine that can executed different tasks as DAG.
  */

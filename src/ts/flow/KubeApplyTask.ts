@@ -1,4 +1,4 @@
-import { KubeApply, Manifest } from "../utils/KubeApply";
+import { KubeApply, Manifest } from "../plugins/KubeApply";
 import { Task } from "./Flow";
 
 

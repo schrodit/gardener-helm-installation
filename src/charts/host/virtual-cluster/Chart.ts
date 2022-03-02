@@ -1,4 +1,5 @@
-import { Chart, ChartPath, Values } from "../../../ts/utils/Helm";
+import { callbackify } from "util";
+import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
 import { GardenerNamespace, GeneralValues } from "../../../ts/Values";
 
 
@@ -42,11 +43,15 @@ export class VirtualClusterChart extends Chart {
                         key: values.apiserver.aggregator.tls.client.privateKey,
                     },
                 },
+                admin: {
+                    crt: values.apiserver.tls.admin.cert,
+                    key: values.apiserver.tls.admin.privateKey,
+                },
                 kubeControllerManager: {
                     crt: values.apiserver.tls.kubeControllerManager.cert,
                     key: values.apiserver.tls.kubeControllerManager.privateKey,
                 },
-                serviceAccountKey: values.apiserver.admin.certificate.privateKey,
+                serviceAccountKey: values.apiserver.accountKey.privateKey,
             },
             etcd: {
                 main: {

@@ -1,12 +1,15 @@
 import { has } from "./utils/has";
-import { merge } from '@0cfg/utils-common/lib/merge';
 import validator from 'validator';
-import { Values } from "./utils/Helm";
+import { Values } from "./plugins/Helm";
 import { State } from "./state/State";
-import { generateKey, Keypair, KeypairPEM, TLS } from "./utils/tls";
+import { generateKey, KeypairPEM } from "./utils/tls";
 import { ETCDCertificates, generateETCDCerts } from "./etcd";
-import { generateKubeAggregaotrCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates } from "./virtualCluster";
+import { generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates } from "./VirtualCluster";
 import { deepMergeObject } from "./utils/deepMerge";
+import { createLogger } from "./log/Logger";
+import { GardenerCertificates, generateGardenerCerts } from "./Gardener";
+
+const log = createLogger('Values');
 
 export const GardenerNamespace = 'garden';
 export const GardenSystemNamespace = 'garden-system';
@@ -29,14 +32,18 @@ export interface StateValues {
 
     apiserver: {
         tls?: KubeApiserverCertificates,
+        accountKey?: KeypairPEM,
         admin: {
-            certificate?: KeypairPEM,
             basicAuthPassword?: string,
         }
         aggregator: {
             tls?: KubeAggregatorCertificates,
         },
     },
+
+    gardener: {
+        certs?: GardenerCertificates,
+    }
 }
 
 export const emptyStateFile: StateValues = {
@@ -47,15 +54,25 @@ export const emptyStateFile: StateValues = {
         admin: {},
         aggregator: {},
     },
+    gardener: {},
 }
 
 export interface InputValues {
+    landscapeName: string,
     host: string,
     ingressPrefix?: string,
     gardenerDomainPrefix?: string,
     apiserverDomainPrefix?: string,
 
     wildcardSecretName: string,
+
+    hostCluster: {
+        network: {
+            serviceCIDR: string,
+            podCIDR: string,
+            nodeCIDR: string,
+        }
+    }
 
     identity: {
         dashboardClientSecret: string,
@@ -79,14 +96,34 @@ export interface InputValues {
 
     apiserver: {
         tls: KubeApiserverCertificates,
+        accountKey: KeypairPEM,
         admin: {
-            certificate: KeypairPEM,
             basicAuthPassword: string,
         }
         aggregator: {
             tls: KubeAggregatorCertificates,
         },
     },
+
+    gardener: {
+        certs: GardenerCertificates,
+        seedCandidateDeterminationStrategy: string,
+        shootDomainPrefix: string,
+        apiserver: {
+            replicaCount?: number,
+            [key: string]: any,
+        },
+        controller: {
+            [key: string]: any,
+        }
+        admission: {
+            replicaCount?: number,
+            [key: string]: any,
+        }
+        scheduler: {
+            [key: string]: any,
+        }
+    }
 
     etcd: {
         tls: ETCDCertificates,
@@ -100,14 +137,16 @@ export interface GeneralValues extends InputValues {
     ingressHost: string,
     gardenerHost: string,
     issuerUrl: string,
+    
+    wildcardSecretName: string,
 
     apiserver: {
         host: string,
         url: string,
 
         tls: KubeApiserverCertificates,
+        accountKey: KeypairPEM,
         admin: {
-            certificate: KeypairPEM,
             basicAuthPassword: string,
         }
         aggregator: {
@@ -127,10 +166,9 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
 
     const ingressHost = addDomainPrefix(input.host, input.ingressPrefix);
     const gardenerHost = addDomainPrefix(ingressHost, input.gardenerDomainPrefix);
-    const apiserverHost = addDomainPrefix(ingressHost, input.apiserverDomainPrefix ?? 'api');
+    const apiserverHost = addDomainPrefix(ingressHost, input.apiserverDomainPrefix);
     const apiserverUrl = `https://${apiserverHost}`;
     const issuerUrl = `https://${gardenerHost}/oidc`;
-    const wildcardSecretName = input.wildcardSecretName ?? 'gardener-wildcard-tls';
 
     const stateValues = await state.get();
 
@@ -152,17 +190,22 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
     );
     
     if (!has(stateValues.etcd.tls)) {
+        log.info('etcd certs not found. Generating...');
         stateValues.etcd.tls = generateETCDCerts(GardenerNamespace);
     }
 
-    if (!has(stateValues.apiserver.tls)) {
-        stateValues.apiserver.tls = generateKubeApiserverCerts(GardenerNamespace, apiserverHost, gardenerHost);
+    const apiserverTls = stateValues.apiserver.tls;
+    if (!has(apiserverTls) || !has(apiserverTls?.admin, apiserverTls?.kubeControllerManager, apiserverTls?.kubeControllerManager)) {
+        log.info('apiserver certs not found. Generating...');
+        stateValues.apiserver.tls = generateKubeApiserverCerts(GardenerNamespace, apiserverHost, gardenerHost, apiserverTls?.ca);
     }
     if (!has(stateValues.apiserver.aggregator.tls)) {
-        stateValues.apiserver.aggregator.tls = generateKubeAggregaotrCerts();
+        log.info('apiserver aggregator certs not found. Generating...');
+        stateValues.apiserver.aggregator.tls = generateKubeAggregatorCerts();
     }
-    if (!has(stateValues.apiserver.admin.certificate)) {
-        stateValues.apiserver.admin.certificate = generateKey();
+    if (!has(stateValues.apiserver.accountKey)) {
+        log.info('apiserver admin cert not found. Generating...');
+        stateValues.apiserver.accountKey = generateKey();
     }
     stateValues.apiserver.admin.basicAuthPassword = generateRandomIfNotDefined(
         undefined,
@@ -170,9 +213,16 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
         30,
     );
 
+    const gardenerCerts = stateValues.gardener.certs;
+    if (!has(gardenerCerts) || !has(gardenerCerts?.apiserver, gardenerCerts?.controllerManager, gardenerCerts?.admissionController)) {
+        log.info('gardener certs not found. Generating...');
+        stateValues.gardener.certs = generateGardenerCerts(GardenerNamespace, gardenerCerts?.ca);
+    }
+
     input = deepMergeObject(input, stateValues);
 
     await state.store(stateValues);
+    log.info('Succesfully stored state');
     validateStateAndInputValues(input);
 
     const general: GeneralValues = deepMergeObject({
@@ -187,7 +237,6 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
         dnsController: {
             class: 'garden-host'
         },
-        wildcardSecretName,
     }, input);
 
     return general;
@@ -202,6 +251,9 @@ const validateInput = (input: InputValues): void => {
     required(input, 'acme', 'email');
     required(input, 'dns', 'provider');
     required(input, 'dns', 'credentials');
+    required(input, 'hostCluster', 'network', 'nodeCIDR');
+    required(input, 'hostCluster', 'network', 'podCIDR');
+    required(input, 'hostCluster', 'network', 'serviceCIDR');
 }
 
 const validateStateAndInputValues = (input: InputValues): void => {
