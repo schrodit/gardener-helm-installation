@@ -1,31 +1,30 @@
-import { Chart, Helm, InstalledRelease, Release } from './plugins/Helm';
-import { mkdir, readFile, writeFile, access } from 'fs/promises';
-import yaml from 'yaml';
+import {mkdir, readFile, writeFile, access} from 'fs/promises';
 import path from 'path';
-import { DefaultNamespace, emptyStateFile, generateGardenerInstallationValues, KubeSystemNamespace, StateValues } from './Values';
+import yaml from 'yaml';
+import {KubeConfig} from '@kubernetes/client-node';
 import {IdentityChart} from '../charts/host/identity/Chart';
-import { NginxIngressChart } from '../charts/host/NginxIngressChart';
-import { NetworkPoliciesChart } from '../charts/host/network-policies/Chart';
-import { GardenerDashboardChart } from '../charts/host/gardener-dashboard/Chart';
-import { CertManagerChart } from '../charts/host/CertManagerChart';
-import { DnsControllerChart } from '../charts/host/external-dns-management/Chart';
-import { HostConfigurationChart } from '../charts/host/configuration/Chart';
-import { KeyValueState, State } from './state/State';
-import { LocalKeyValueState, LocalState } from './state/LocalState';
-import { EtcdEventsChart, EtcdMainChart } from '../charts/host/etcd/Chart';
-import { deepMergeObject } from './utils/deepMerge';
-import { KubernetesKeyValueState, KubernetesState } from './state/KubernetesState';
-import { DefaultKubeClient } from './utils/DefaultKubeClient';
-import { KubeConfig } from '@kubernetes/client-node';
-import { createLogger } from './log/Logger';
-import { KubeApply, ManagedResources, LocalManifest } from './plugins/KubeApply';
-import { KubeClient } from './utils/KubeClient';
-import { VirtualClusterChart } from '../charts/host/virtual-cluster/Chart';
-import { Flow } from './flow/Flow';
-import { HelmTaskFactory } from './flow/HelmTask';
-import { KubeApplyFactory } from './flow/KubeApplyTask';
-import { ExportVirtualClusterAdminKubeconfig } from './tasks/ExportApiserverKubeconfig';
-import { Gardener } from './Gardener';
+import {NginxIngressChart} from '../charts/host/NginxIngressChart';
+import {NetworkPoliciesChart} from '../charts/host/network-policies/Chart';
+import {CertManagerChart} from '../charts/host/CertManagerChart';
+import {DnsControllerChart} from '../charts/host/external-dns-management/Chart';
+import {HostConfigurationChart} from '../charts/host/configuration/Chart';
+import {EtcdEventsChart, EtcdMainChart} from '../charts/host/etcd/Chart';
+import {VirtualClusterChart} from '../charts/host/virtual-cluster/Chart';
+import {Helm, InstalledRelease} from './plugins/Helm';
+import {DefaultNamespace, emptyStateFile, generateGardenerInstallationValues, StateValues} from './Values';
+import {KeyValueState, State} from './state/State';
+import {LocalKeyValueState, LocalState} from './state/LocalState';
+import {deepMergeObject} from './utils/deepMerge';
+import {KubernetesKeyValueState, KubernetesState} from './state/KubernetesState';
+import {DefaultKubeClient} from './utils/DefaultKubeClient';
+import {createLogger} from './log/Logger';
+import {KubeApply, ManagedResources, LocalManifest} from './plugins/KubeApply';
+import {KubeClient} from './utils/KubeClient';
+import {Flow} from './flow/Flow';
+import {HelmTaskFactory} from './flow/HelmTask';
+import {KubeApplyFactory} from './flow/KubeApplyTask';
+import {ExportVirtualClusterAdminKubeconfig} from './tasks/ExportApiserverKubeconfig';
+import {Gardener} from './Gardener';
 
 const log = createLogger('Installation');
 
@@ -33,9 +32,9 @@ export interface InstallationConfig {
     dryRun: boolean;
     defaultNamespace: string;
     valueFiles: string[];
-};
+}
 
-const defaultValuesFile = './default.yaml'
+const defaultValuesFile = './default.yaml';
 const genDir = './gen';
 const stateFile = './state/state.yaml';
 const helmStateFile = './state/helm-state.yaml';
@@ -136,7 +135,7 @@ export class Installation {
                 this.config.dryRun,
             ),
         );
-        
+
         await flow.execute();
 
         // await this.helm.createOrUpdate(
@@ -150,10 +149,10 @@ export class Installation {
         );
         let val = {};
         allValues.forEach( v => {
-            val = deepMergeObject(val, v)
-        })
+            val = deepMergeObject(val, v);
+        });
         return val;
-    };
+    }
 
     private async readValues(path: string): Promise<any> {
         log.info(`Read values from ${path}`);
@@ -166,7 +165,7 @@ export class Installation {
         } catch (error) {
             await mkdir('./gen');
         }
-        
+
         await writeFile(path.join(genDir, filename), content);
     }
 

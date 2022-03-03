@@ -1,7 +1,6 @@
-import { Chart, Helm } from "../plugins/Helm";
-import { GeneralValues } from "../Values";
-import { Task } from "./Flow";
-
+import {Chart, Helm} from '../plugins/Helm';
+import {GeneralValues} from '../Values';
+import {Task} from './Flow';
 
 export class HelmTask extends Task {
 
@@ -13,7 +12,7 @@ export class HelmTask extends Task {
         super(chart.realeaseName);
     }
 
-    async do(): Promise<void> {
+    public async do(): Promise<void> {
         await this.helm.createOrUpdate(await this.chart.getRelease(this.values));
     }
 
@@ -25,7 +24,6 @@ export class HelmTaskFactory {
         private readonly values: GeneralValues,
         private readonly helm: Helm,
     ) {}
-
 
     public createTask(chart: Chart): HelmTask {
         return new HelmTask(chart, this.values, this.helm);

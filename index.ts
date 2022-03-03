@@ -1,7 +1,6 @@
 #!/bin/env -S node --loader ts-node/esm
-const { program } = require('commander');
-import { Installation } from './src/ts/Installation';
-import { execAsync } from './src/ts/utils/execAsync';
+import {Installation} from './src/ts/Installation';
+const {program} = require('commander');
 
 program.option('--dryRun [dryRun]');
 program.option('-f, --values [letters...]');

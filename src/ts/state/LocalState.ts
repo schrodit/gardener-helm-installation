@@ -1,19 +1,17 @@
-import { access, mkdir, readFile, writeFile } from "fs/promises";
-import { KeyValueState, State } from "./State";
+import {access, mkdir, readFile, writeFile} from 'fs/promises';
 import path from 'path';
-import { has } from "../utils/has";
-import { merge } from "@0cfg/utils-common/lib/merge";
-import { deepMergeObject } from "../utils/deepMerge";
-
+import {has} from '../utils/has';
+import {deepMergeObject} from '../utils/deepMerge';
+import {KeyValueState, State} from './State';
 
 export class LocalState<T> implements State<T> {
 
     constructor(
         private readonly stateFile: string,
         private readonly empty: T,
-    ){}
-    
-    async get(): Promise<T> {
+    ) {}
+
+    public async get(): Promise<T> {
         try {
             await access(this.stateFile);
         } catch (error: any) {
@@ -26,7 +24,7 @@ export class LocalState<T> implements State<T> {
         return deepMergeObject(this.empty, obj);
     }
 
-    async store(data: T): Promise<void> {
+    public async store(data: T): Promise<void> {
         const stateDir = path.dirname(this.stateFile);
         try {
             await access(stateDir);
@@ -35,7 +33,7 @@ export class LocalState<T> implements State<T> {
         }
         await writeFile(this.stateFile, JSON.stringify(data, null, '  '), 'utf-8');
     }
-    
+
 }
 
 export class LocalKeyValueState<T> implements KeyValueState<T> {
@@ -45,21 +43,21 @@ export class LocalKeyValueState<T> implements KeyValueState<T> {
 
     constructor(
         stateFile: string,
-    ){
+    ) {
         this.state = new LocalState<Record<string, T>>(stateFile, {});
     }
 
-    async getAll(): Promise<Record<string, T>> {
+    public async getAll(): Promise<Record<string, T>> {
         return await this.getData();
     }
-    
-    async get(key: string): Promise<T | undefined> {
+
+    public async get(key: string): Promise<T | undefined> {
         return (await this.getData())[key];
     }
 
-    async store(key: string, data: T): Promise<void> {
+    public async store(key: string, data: T): Promise<void> {
         const d = await this.getData();
-        d[key] = data
+        d[key] = data;
 
         await this.state.store(d);
     }
@@ -71,5 +69,5 @@ export class LocalKeyValueState<T> implements KeyValueState<T> {
         this.data = await this.state.get();
         return this.data as Record<string, T>;
     }
-    
+
 }

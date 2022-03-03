@@ -1,5 +1,4 @@
 
-
 export interface State<T> {
     get(): Promise<T>
     store(data: T): Promise<void>

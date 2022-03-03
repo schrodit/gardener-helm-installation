@@ -1,7 +1,5 @@
-import { callbackify } from "util";
-import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
-import { GardenerNamespace, GeneralValues } from "../../../ts/Values";
-
+import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
+import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
 
 export class VirtualClusterChart extends Chart {
     constructor() {
@@ -20,7 +18,7 @@ export class VirtualClusterChart extends Chart {
                 hostname: values.apiserver.host,
                 oidcIssuerURL: values.issuerUrl,
             },
-            
+
             tls: {
                 kubeAPIServer: {
                     ca: {

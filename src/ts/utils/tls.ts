@@ -1,5 +1,5 @@
 import * as forge from 'node-forge';
-import { has } from './has';
+import {has} from './has';
 
 // todo: (schrodit) check back when eliptic curves are supported
 // https://github.com/digitalbazaar/forge/pull/925
@@ -36,14 +36,14 @@ export interface CSR {
     extensions?: Record<string, any>[],
 }
 
-export const defaultExtensions = () =>{
+export const defaultExtensions = () => {
     return [
         {
             name: 'keyUsage',
             keyCertSign: true,
             digitalSignature: true,
             keyEncipherment: true,
-            dataEncipherment: true
+            dataEncipherment: true,
         },
         {
             name: 'extKeyUsage',
@@ -52,7 +52,7 @@ export const defaultExtensions = () =>{
             codeSigning: true,
             timeStamping: true,
         },
-    ]
+    ];
 };
 
 export const generateKey = (): KeypairPEM => {
@@ -60,8 +60,8 @@ export const generateKey = (): KeypairPEM => {
     return {
         publicKey: pki.publicKeyToPem(key.publicKey),
         privateKey: pki.privateKeyToPem(key.privateKey),
-    }
-}
+    };
+};
 
 export const createSelfSignedCA = (cn: string): CA => {
     const keypair = pki.rsa.generateKeyPair(RSA_BITS);
@@ -73,7 +73,7 @@ export const createSelfSignedCA = (cn: string): CA => {
     cert.validity.notAfter = new Date();
     cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear()+10);
     const attrs = [
-        {name:'commonName', value: cn}
+        {name: 'commonName', value: cn},
     ];
     cert.setSubject(attrs);
     cert.setIssuer(attrs);
@@ -87,7 +87,7 @@ export const createSelfSignedCA = (cn: string): CA => {
             keyCertSign: true,
             digitalSignature: true,
             keyEncipherment: true,
-            dataEncipherment: true
+            dataEncipherment: true,
         },
         {
             name: 'extKeyUsage',
@@ -104,9 +104,9 @@ export const createSelfSignedCA = (cn: string): CA => {
             objsign: true,
             sslCA: true,
             emailCA: true,
-            objCA: true
+            objCA: true,
         },
-    ])
+    ]);
     cert.sign(keypair.privateKey);
 
     return {
@@ -114,8 +114,8 @@ export const createSelfSignedCA = (cn: string): CA => {
         cert: pki.certificateToPem(cert),
         publicKey: pki.publicKeyToPem(keypair.publicKey),
         privateKey: pki.privateKeyToPem(keypair.privateKey),
-    }
-}
+    };
+};
 
 export const createClientTLS = (ca: CA, csr: CSR): TLS => {
     const keypair = pki.rsa.generateKeyPair(RSA_BITS);
@@ -127,13 +127,13 @@ export const createClientTLS = (ca: CA, csr: CSR): TLS => {
     cert.validity.notAfter = new Date();
     cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear()+10);
     const attrs = [
-        {name:'commonName', value: csr.cn},
+        {name: 'commonName', value: csr.cn},
     ];
     if (has(csr.organization)) {
         attrs.push({
             name: 'organizationName',
             value: csr.organization!,
-        })
+        });
     }
 
     cert.setSubject(attrs);
@@ -147,7 +147,7 @@ export const createClientTLS = (ca: CA, csr: CSR): TLS => {
                 altNames: csr.altNames?.map(n => {
                     return {
                         type: 2, // DNS
-                        value: n
+                        value: n,
                     };
                 }),
                 // altNames: [{
@@ -158,7 +158,7 @@ export const createClientTLS = (ca: CA, csr: CSR): TLS => {
                 //     ip: '127.0.0.1'
                 // }]
             }
-        )
+        );
     }
     cert.setExtensions(extensions);
 
@@ -169,5 +169,5 @@ export const createClientTLS = (ca: CA, csr: CSR): TLS => {
         cert: pki.certificateToPem(cert),
         publicKey: pki.publicKeyToPem(keypair.publicKey),
         privateKey: pki.privateKeyToPem(keypair.privateKey),
-    }
-}
+    };
+};

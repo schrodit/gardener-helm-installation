@@ -1,15 +1,15 @@
-import { Task } from "./flow/Flow";
-import { createLogger } from "./log/Logger";
-import { Chart, Helm, RemoteChartFromZip, Values } from "./plugins/Helm";
-import { KubeClient } from "./utils/KubeClient";
-import { trimPrefix } from "./utils/trimPrefix";
-import { GardenerNamespace, GeneralValues } from "./Values";
-import { waitUntilVirtualClusterIsReady } from "./VirtualCluster";
 import path from 'path';
-import { CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS } from "./utils/tls";
-import { getKubeConfigForServiceAccount, serviceHosts } from "./utils/kubernetes";
-import { deepMergeObject } from "./utils/deepMerge";
 import IPCIDR from 'ip-cidr';
+import {Task} from '../flow/Flow';
+import {createLogger} from '../log/Logger';
+import {Chart, Helm, RemoteChartFromZip, Values} from '../plugins/Helm';
+import {KubeClient} from '../utils/KubeClient';
+import {trimPrefix} from '../utils/trimPrefix';
+import {GardenerNamespace, GeneralValues} from '../Values';
+import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
+import {getKubeConfigForServiceAccount, serviceHosts} from '../utils/kubernetes';
+import {deepMergeObject} from '../utils/deepMerge';
+import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
 
 const log = createLogger('Gardener');
 
@@ -25,47 +25,47 @@ export interface GardenerCertificates {
 }
 
 const defaultResources = {
-    "apiserver": {
-        "limits": {
-            "cpu": "300m",
-            "memory": "256Mi"
+    'apiserver': {
+        'limits': {
+            'cpu': '300m',
+            'memory': '256Mi',
         },
-        "requests": {
-            "cpu": "100m",
-            "memory": "100Mi"
-        }
+        'requests': {
+            'cpu': '100m',
+            'memory': '100Mi',
+        },
     },
-    "admission": {
-        "requests": {
-            "cpu": "100m",
-            "memory": "200Mi"
+    'admission': {
+        'requests': {
+            'cpu': '100m',
+            'memory': '200Mi',
         },
-        "limits": {
-            "cpu": "300m",
-            "memory": "512Mi"
-        }
+        'limits': {
+            'cpu': '300m',
+            'memory': '512Mi',
+        },
     },
-    "controller": {
-        "limits": {
-            "cpu": "750m",
-            "memory": "512Mi"
+    'controller': {
+        'limits': {
+            'cpu': '750m',
+            'memory': '512Mi',
         },
-        "requests": {
-            "cpu": "100m",
-            "memory": "100Mi"
-        }
+        'requests': {
+            'cpu': '100m',
+            'memory': '100Mi',
+        },
     },
-    "scheduler": {
-        "limits": {
-            "cpu": "300m",
-            "memory": "256Mi"
+    'scheduler': {
+        'limits': {
+            'cpu': '300m',
+            'memory': '256Mi',
         },
-        "requests": {
-            "cpu": "50m",
-            "memory": "50Mi"
-        }
-    }
-}
+        'requests': {
+            'cpu': '50m',
+            'memory': '50Mi',
+        },
+    },
+};
 
 export class Gardener extends Task {
 
@@ -80,14 +80,14 @@ export class Gardener extends Task {
         super('Gardener');
     }
 
-    async do(): Promise<void> {
+    public async do(): Promise<void> {
         log.info(`Installing Gardener version ${GardenerVersion}`);
         if (!this.dryRun) {
             this.virtualClient = await waitUntilVirtualClusterIsReady(log, this.values);
         }
 
         log.info('Install Gardener Controlplane');
-        
+
         const gardenerValues = this.getValues();
 
         const applicationHelmChart = new ApplicationChart(gardenerValues);
@@ -100,9 +100,6 @@ export class Gardener extends Task {
 
         const runtimeHelmChart = new RuntimeChart(gardenerValues);
         await this.helm.createOrUpdate(await runtimeHelmChart.getRelease(this.values));
-
-
-        throw new Error("Method not implemented.");
     }
 
     private getValues() {
@@ -126,10 +123,10 @@ export class Gardener extends Task {
                     virtualGarden: {
                         enabled: true,
                         clusterIP: new IPCIDR(this.values.hostCluster.network.serviceCIDR).toArray()[20],
-                    }
-                }
+                    },
+                },
             },
-        }
+        };
     }
 
     private apiserverValues() {
@@ -152,7 +149,7 @@ export class Gardener extends Task {
                 tls: {
                     crt: this.values.etcd.tls.client.cert,
                     key: this.values.etcd.tls.client.privateKey,
-                }
+                },
             },
             resources: defaultResources.apiserver,
             groupPriorityMinimum: 10000,
@@ -161,7 +158,7 @@ export class Gardener extends Task {
             serviceAccountName: 'gardener-apiserver',
             versionPriority: 20,
         }, this.values.gardener.apiserver);
-    };
+    }
 
     private controllerValues() {
         return deepMergeObject({
@@ -184,46 +181,46 @@ export class Gardener extends Task {
                     burst: 130,
                 },
                 logLevel: 'info',
-                "controllers": {
-                    "backupInfrastructure": {
-                        "concurrentSyncs": 20,
-                        "syncPeriod": "24h"
+                'controllers': {
+                    'backupInfrastructure': {
+                        'concurrentSyncs': 20,
+                        'syncPeriod': '24h',
                     },
-                    "seed": {
-                        "concurrentSyncs": 5,
-                        "reserveExcessCapacity": false,
-                        "syncPeriod": "1m"
+                    'seed': {
+                        'concurrentSyncs': 5,
+                        'reserveExcessCapacity': false,
+                        'syncPeriod': '1m',
                     },
-                    "shoot": {
-                        "concurrentSyncs": 20,
-                        "retryDuration": "24h",
-                        "syncPeriod": "1h"
+                    'shoot': {
+                        'concurrentSyncs': 20,
+                        'retryDuration': '24h',
+                        'syncPeriod': '1h',
                     },
-                    "shootCare": {
-                        "concurrentSyncs": 5,
-                        "conditionThresholds": {
-                            "apiServerAvailable": "1m",
-                            "controlPlaneHealthy": "1m",
-                            "everyNodeReady": "5m",
-                            "systemComponentsHealthy": "1m"
+                    'shootCare': {
+                        'concurrentSyncs': 5,
+                        'conditionThresholds': {
+                            'apiServerAvailable': '1m',
+                            'controlPlaneHealthy': '1m',
+                            'everyNodeReady': '5m',
+                            'systemComponentsHealthy': '1m',
                         },
-                        "syncPeriod": "30s"
+                        'syncPeriod': '30s',
                     },
-                    "shootMaintenance": {
-                        "concurrentSyncs": 5
+                    'shootMaintenance': {
+                        'concurrentSyncs': 5,
                     },
-                    "shootQuota": {
-                        "concurrentSyncs": 5,
-                        "syncPeriod": "60m"
-                    }
+                    'shootQuota': {
+                        'concurrentSyncs': 5,
+                        'syncPeriod': '60m',
+                    },
                 },
-                "featureGates": {},
-                "leaderElection": {
-                    "leaderElect": true,
-                    "leaseDuration": "15s",
-                    "renewDeadline": "10s",
-                    "resourceLock": "configmaps",
-                    "retryPeriod": "2s"
+                'featureGates': {},
+                'leaderElection': {
+                    'leaderElect': true,
+                    'leaseDuration': '15s',
+                    'renewDeadline': '10s',
+                    'resourceLock': 'configmaps',
+                    'retryPeriod': '2s',
                 },
                 server: {
                     http: {
@@ -242,7 +239,7 @@ export class Gardener extends Task {
                 },
             },
         }, this.values.gardener.admission);
-    };
+    }
 
     private admissionValues() {
         return deepMergeObject({
@@ -274,7 +271,7 @@ export class Gardener extends Task {
                 },
             },
         }, this.values.gardener.controller);
-    };
+    }
 
     private schedulerValues(): Values {
         return deepMergeObject({
@@ -296,10 +293,10 @@ export class Gardener extends Task {
                 },
             },
         }, this.values.gardener.scheduler);
-    };
+    }
 
     private async getKubeConfigForServiceAccount(name: string): Promise<string> {
-        if(!this.virtualClient) {
+        if (!this.virtualClient) {
             return `dumy-${name}`;
         }
         const kc = await getKubeConfigForServiceAccount(this.virtualClient, GardenerNamespace, name, log);
@@ -312,10 +309,10 @@ class RuntimeChart extends Chart {
         super(
             'gardener-runtime',
             new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartBasePath, 'runtime')),
-        )
+        );
     }
 
-    async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: GeneralValues): Promise<Values> {
         return this.values;
     }
 }
@@ -325,10 +322,10 @@ class ApplicationChart extends Chart {
         super(
             'gardener-application',
             new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartBasePath, 'application')),
-        )
+        );
     }
 
-    async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: GeneralValues): Promise<Values> {
         return this.values;
     }
 }
@@ -354,11 +351,10 @@ export const generateGardenerCerts = (
         altNames: serviceHosts('gardener-admission-controller', gardenNamespace),
     });
 
-
     return {
         ca,
         apiserver,
         controllerManager,
         admissionController,
-    }
-}
+    };
+};

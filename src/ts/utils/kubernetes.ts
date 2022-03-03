@@ -1,29 +1,27 @@
-import { has } from "@0cfg/utils-common/lib/has";
-import { KubeConfig, KubernetesObject, V1SeccompProfile, V1Secret, V1ServiceAccount } from "@kubernetes/client-node";
-import { createLogger, Logger } from "../log/Logger";
-import { base64Decode } from "./base64Decode";
-import { base64Encode } from "./base64Encode";
-import { retryWithBackoff } from "./exponentialBackoffRetry";
-import { KubeClient } from "./KubeClient";
-
+import {has} from '@0cfg/utils-common/lib/has';
+import {KubeConfig, KubernetesObject, V1Secret, V1ServiceAccount} from '@kubernetes/client-node';
+import {createLogger, Logger} from '../log/Logger';
+import {base64Decode} from './base64Decode';
+import {base64Encode} from './base64Encode';
+import {retryWithBackoff} from './exponentialBackoffRetry';
+import {KubeClient} from './KubeClient';
 
 /**
  * Returns a list of all available hosts of a namespaced service.
- * @param svcName 
+ * @param svcName
  */
 export const serviceHosts = (svcName: string, ns: string): string[] => {
     const suffix = ['svc', 'cluster', 'local'];
-    suffix.unshift(ns)
+    suffix.unshift(ns);
 
     const hosts = [svcName];
     let prev = svcName;
     for (const p of suffix) {
         prev = [prev, p].join('.');
-        hosts.push(prev)
+        hosts.push(prev);
     }
     return hosts;
-}
-
+};
 
 /**
  * Creates or updates the given object in the Kubernetes cluster.
@@ -181,13 +179,12 @@ export const getKubeConfigForServiceAccount = async (client: KubeClient, namespa
     });
     kc.setCurrentContext('default');
     return kc;
-}
-
+};
 
 /**
  * Encodes a map of key, value pairs to JSON.stringified base64 encoded values.
  */
-export const base64EncodeMap = (data: Record<string, any>, 
+export const base64EncodeMap = (data: Record<string, any>,
     options: {jsonIgnoreString: boolean} = {
         jsonIgnoreString: false,
     }): Record<string, string> => {
@@ -202,4 +199,4 @@ export const base64EncodeMap = (data: Record<string, any>,
         raw[key] = base64Encode(JSON.stringify(d));
     }
     return raw;
-}
+};

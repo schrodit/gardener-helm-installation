@@ -6,7 +6,9 @@
   "author": "schrodit <mail@timschrodi.tech>",
   "license": "MIT",
   "scripts": {
-    "setup": "node --loader ts-node/esm ./index.ts"
+    "setup": "node --loader ts-node/esm ./index.ts",
+    "lintFix": "eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet --fix",
+    "lint": "eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet"
   },
   "dependencies": {
     "@0cfg/utils-common": "^0.1.8",
@@ -31,6 +33,11 @@
     "@types/validator": "^13.7.1",
     "@types/winston": "^2.4.4",
     "@types/yargs": "^17.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "eslint": "^8.10.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "ts-node": "^10.5.0",
     "typescript": "^4.5.5"
   }

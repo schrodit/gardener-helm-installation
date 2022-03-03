@@ -1,16 +1,16 @@
-import { access, mkdir, writeFile } from "fs/promises";
-import path from "path";
-import { createLogger } from "../log/Logger";
-import { KeyValueState } from "../state/State";
-import { GeneralValues } from "../Values";
-import { deepMergeObject } from "../utils/deepMerge";
-import { execAsync } from "../utils/execAsync";
-import { has } from "../utils/has";
-import { downloadFile } from "../utils/downloadFile";
+import {access, mkdir, writeFile} from 'fs/promises';
+import path from 'path';
 import crypto from 'crypto';
 import * as extract from 'extract-zip';
-import { createDir } from "../utils/createDir";
-import { KubeConfig } from "@kubernetes/client-node";
+import {KubeConfig} from '@kubernetes/client-node';
+import {createLogger} from '../log/Logger';
+import {KeyValueState} from '../state/State';
+import {GeneralValues} from '../Values';
+import {deepMergeObject} from '../utils/deepMerge';
+import {execAsync} from '../utils/execAsync';
+import {has} from '../utils/has';
+import {downloadFile} from '../utils/downloadFile';
+import {createDir} from '../utils/createDir';
 
 const log = createLogger('Helm');
 
@@ -22,9 +22,9 @@ export abstract class Chart {
         public readonly realeaseName: string,
         protected readonly chart: ChartContent,
         protected readonly namespace?: string,
-    ){}
+    ) {}
 
-    abstract renderValues(values: GeneralValues): Promise<Values>;
+    public abstract renderValues(values: GeneralValues): Promise<Values>;
 
     public async getRelease(values: GeneralValues): Promise<Release> {
         return {
@@ -32,7 +32,7 @@ export abstract class Chart {
             chart: this.chart,
             namespace: this.namespace,
             values: this.mergeDefaultValues(values, await this.renderValues(values)),
-        }
+        };
     }
 
     /**
@@ -62,21 +62,21 @@ export interface InjectGenDir {
 }
 
 export class ChartPath implements ChartContent {
-    constructor(public readonly path: string){}
+    constructor(public readonly path: string) {}
 
-    async getHelmArgs(): Promise<string> {
+    public async getHelmArgs(): Promise<string> {
         return this.path;
     }
-};
+}
 
 export class RemoteChart {
     constructor(
         public readonly name: string,
         public readonly version: string,
         public readonly repository?: string,
-    ){}
+    ) {}
 
-    async getHelmArgs(): Promise<string> {
+    public async getHelmArgs(): Promise<string> {
         let args = `${this.name} --version ${this.version}`;
         if (has(this.repository)) {
             args += ` --repo ${this.repository}`;
@@ -91,7 +91,7 @@ export class RemoteChartFromZip implements ChartContent, InjectGenDir {
     constructor(
         public readonly url: string,
         public readonly path: string,
-    ){}
+    ) {}
 
     public injectGenDir(dir: string): void {
         this.genDir = dir;
@@ -124,7 +124,7 @@ export class RemoteChartFromZip implements ChartContent, InjectGenDir {
         } catch (error) {
             await downloadFile(this.url, zipFile);
         }
-        
+
         extract.default(zipFile, {
             dir: path.resolve(extractedDir),
         });
@@ -140,7 +140,7 @@ export class RemoteChartFromZip implements ChartContent, InjectGenDir {
 const implementsInjectGenDir = (obj: unknown): obj is InjectGenDir => {
     return typeof obj === 'object'
         && typeof (obj as any).injectGenDir === 'function';
-}
+};
 
 export interface InstalledRelease {
     name: string,
@@ -186,7 +186,7 @@ export class Helm {
             cmd = `helm template ${name} ${chartArgs} --namespace ${namespace} ${additionalArgs}`;
         }
 
-        if(values) {
+        if (values) {
             cmd+=` -f ${await this.writeValuesFile(name, values)}`;
         }
 

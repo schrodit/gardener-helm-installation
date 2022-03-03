@@ -1,12 +1,12 @@
-import { createLogger } from "../log/Logger";
+import {createLogger} from '../log/Logger';
 
 const log = createLogger('Flow');
 
 export abstract class Task {
 
-    constructor(public readonly name: string){}
+    constructor(public readonly name: string) {}
 
-    abstract do(): Promise<void>;
+    public abstract do(): Promise<void>;
 }
 
 /**

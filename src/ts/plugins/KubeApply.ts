@@ -1,48 +1,46 @@
-import { KubernetesObject } from "@kubernetes/client-node";
-import { readFile } from "fs/promises";
-import { createLogger } from "../log/Logger";
-import { KeyValueState } from "../state/State";
+import {readFile} from 'fs/promises';
+import {KubernetesObject} from '@kubernetes/client-node';
 import * as YAML from 'yaml';
 import axios from 'axios';
-import { retryWithBackoff } from "../utils/exponentialBackoffRetry";
-import { createOrUpdate, enrichKubernetesError } from "../utils/kubernetes";
-import { KubeClient } from "../utils/KubeClient";
+import {createLogger} from '../log/Logger';
+import {KeyValueState} from '../state/State';
+import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
+import {createOrUpdate, enrichKubernetesError} from '../utils/kubernetes';
+import {KubeClient} from '../utils/KubeClient';
 
 const log = createLogger('KubeApply');
-
 
 export type ManagedResources = KubernetesObject;
 
 export abstract class Manifest {
 
-    constructor(public readonly name: string){}
+    constructor(public readonly name: string) {}
 
-    abstract getManifests(): Promise<KubernetesObject[]>;
+    public abstract getManifests(): Promise<KubernetesObject[]>;
 
     protected parseFile(content: string): KubernetesObject[] {
-        
+
         const obj = YAML.parseAllDocuments(content);
         // todo: check if its a real obj;
         return obj.map(o => o.toJSON()) as KubernetesObject[];
     }
 }
 
-
 export class LocalManifest extends Manifest {
-    constructor(name: string, public readonly path: string){
+    constructor(name: string, public readonly path: string) {
         super(name);
     }
 
     public async getManifests(): Promise<KubernetesObject[]> {
         return this.parseFile(await readFile(this.path, 'utf-8'));
     }
-};
+}
 
 export class RemoteManifest extends Manifest {
     constructor(
         name: string,
         public readonly url: string,
-    ){
+    ) {
         super(name);
     }
 
@@ -54,7 +52,7 @@ export class RemoteManifest extends Manifest {
 
 export class RawManifest extends Manifest {
     private readonly manifests: KubernetesObject[];
-    constructor(name: string, ...manifests: KubernetesObject[]){
+    constructor(name: string, ...manifests: KubernetesObject[]) {
         super(name);
         this.manifests = manifests;
     }
@@ -62,8 +60,7 @@ export class RawManifest extends Manifest {
     public async getManifests(): Promise<KubernetesObject[]> {
         return this.manifests;
     }
-};
-
+}
 
 /**
  * Applies raw kubernetes files
@@ -97,7 +94,7 @@ export class KubeApply {
         await retryWithBackoff(async (): Promise<boolean> => {
             const obj = this.getRawManifest(manifest);
             try {
-                await createOrUpdate(this.kubeClient, this.getRawManifest(manifest),async () => {
+                await createOrUpdate(this.kubeClient, this.getRawManifest(manifest), async () => {
                     Object.assign(obj, manifest);
                 });
                 return true;
@@ -116,7 +113,7 @@ export class KubeApply {
             metadata: {
                 name: manifest.metadata?.name,
                 namespace: manifest.metadata?.namespace,
-            }
-        }
+            },
+        };
     }
 }

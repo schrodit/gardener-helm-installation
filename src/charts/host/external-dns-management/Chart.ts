@@ -1,6 +1,5 @@
-import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
-import { GardenSystemNamespace, GeneralValues } from "../../../ts/Values";
-
+import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
+import {GardenSystemNamespace, GeneralValues} from '../../../ts/Values';
 
 export class DnsControllerChart extends Chart {
     constructor() {
@@ -8,7 +7,7 @@ export class DnsControllerChart extends Chart {
             'dns-controller',
             new ChartPath('./src/charts/host/external-dns-management'),
             GardenSystemNamespace,
-        )
+        );
     }
 
     public async renderValues(values: GeneralValues): Promise<Values> {
@@ -20,9 +19,9 @@ export class DnsControllerChart extends Chart {
             },
             gardener: {
                 seed: {
-                    identity: 'gardener-host-default'
-                }
-            }
+                    identity: 'gardener-host-default',
+                },
+            },
         };
     }
 }

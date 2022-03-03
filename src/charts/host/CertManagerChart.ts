@@ -1,6 +1,5 @@
-import { Chart, RemoteChart, Values } from "../../ts/plugins/Helm";
-import { GardenSystemNamespace, GeneralValues } from "../../ts/Values";
-
+import {Chart, RemoteChart, Values} from '../../ts/plugins/Helm';
+import {GardenSystemNamespace, GeneralValues} from '../../ts/Values';
 
 export class CertManagerChart extends Chart {
     constructor() {

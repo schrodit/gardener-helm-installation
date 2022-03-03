@@ -1,6 +1,5 @@
-import { KubeApply, Manifest } from "../plugins/KubeApply";
-import { Task } from "./Flow";
-
+import {KubeApply, Manifest} from '../plugins/KubeApply';
+import {Task} from './Flow';
 
 export class KubeApplyTask extends Task {
 
@@ -11,7 +10,7 @@ export class KubeApplyTask extends Task {
         super(manifest.name);
     }
 
-    async do(): Promise<void> {
+    public async do(): Promise<void> {
         await this.kubeApply.apply(this.manifest);
     }
 
@@ -22,7 +21,6 @@ export class KubeApplyFactory {
     constructor(
         private readonly kubeApply: KubeApply,
     ) {}
-
 
     public createTask(manifest: Manifest): KubeApplyTask {
         return new KubeApplyTask(manifest, this.kubeApply);

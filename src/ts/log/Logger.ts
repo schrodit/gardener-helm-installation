@@ -1,5 +1,5 @@
-import { Logger as wLogger, createLogger as createWLogger, config, transports, format, level } from "winston";
-import { deepMergeObject } from "../utils/deepMerge";
+import {Logger as wLogger, createLogger as createWLogger, config, transports, format} from 'winston';
+import {deepMergeObject} from '../utils/deepMerge';
 
 export enum LogLevel {
     INFO = 'info',
@@ -34,7 +34,7 @@ class LogCollector {
 
 }
 
-const logCollector = new LogCollector()
+const logCollector = new LogCollector();
 
 export type Labels = Record<string, any>
 
@@ -45,11 +45,11 @@ export class Logger {
         private readonly labels?: Labels,
     ) {}
 
-    info(msg: string, labels?: Labels) {
+    public info(msg: string, labels?: Labels) {
         this.log(LogLevel.INFO, msg, labels);
     }
 
-    error(msg: string | Error, labels?: Labels) {
+    public error(msg: string | Error, labels?: Labels) {
         let errMsg = '';
         if (msg instanceof Error) {
             errMsg = `${msg.name}: ${msg.message}`;
@@ -71,4 +71,4 @@ export const createLogger = (module: string): Logger => {
     return new Logger(logCollector, {
         module,
     });
-}
+};

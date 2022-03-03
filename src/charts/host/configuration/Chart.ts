@@ -1,8 +1,7 @@
-import { has } from "@0cfg/utils-common/lib/has";
-import { hasSubscribers } from "diagnostics_channel";
-import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
-import { base64EncodeMap } from "../../../ts/utils/kubernetes";
-import { GardenerNamespace, GardenSystemNamespace, GeneralValues, KubeSystemNamespace } from "../../../ts/Values";
+import {has} from '@0cfg/utils-common/lib/has';
+import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
+import {base64EncodeMap} from '../../../ts/utils/kubernetes';
+import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../../ts/Values';
 
 type DnsMappingFunc = (values: GeneralValues) => Values;
 
@@ -17,11 +16,10 @@ const dnsProviderMapping: Record<string, DnsMappingFunc> = {
                     name: 'gardener-default',
                     key: 'apiToken',
                 },
-            }
-        }
-    }
-}
-
+            },
+        };
+    },
+};
 
 export class HostConfigurationChart extends Chart {
     constructor() {
@@ -29,7 +27,7 @@ export class HostConfigurationChart extends Chart {
             'host-configuration',
             new ChartPath('./src/charts/host/configuration'),
             GardenerNamespace,
-        )
+        );
     }
 
     public async renderValues(values: GeneralValues): Promise<Values> {

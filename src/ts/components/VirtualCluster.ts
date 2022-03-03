@@ -1,15 +1,14 @@
-import { KubeConfig } from "@kubernetes/client-node";
-import axios from "axios";
-import { Http2ServerRequest } from "http2";
-import { Agent } from "https";
-import { Logger } from "./log/Logger";
-import { base64Encode } from "./utils/base64Encode";
-import { DefaultKubeClient } from "./utils/DefaultKubeClient";
-import { retryWithBackoff } from "./utils/exponentialBackoffRetry";
-import { KubeClient } from "./utils/KubeClient";
-import { enrichKubernetesError, serviceHosts } from "./utils/kubernetes";
-import { CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS } from "./utils/tls";
-import { GeneralValues } from "./Values";
+import {Agent} from 'https';
+import {KubeConfig} from '@kubernetes/client-node';
+import axios from 'axios';
+import {Logger} from './log/Logger';
+import {base64Encode} from './utils/base64Encode';
+import {DefaultKubeClient} from './utils/DefaultKubeClient';
+import {retryWithBackoff} from './utils/exponentialBackoffRetry';
+import {KubeClient} from './utils/KubeClient';
+import {serviceHosts} from './utils/kubernetes';
+import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from './utils/tls';
+import {GeneralValues} from './Values';
 
 export interface KubeApiserverCertificates {
     ca: CA,
@@ -49,7 +48,7 @@ export const generateKubeApiserverCerts = (
         server,
         kubeControllerManager,
         admin,
-    }
+    };
 };
 
 export interface KubeAggregatorCertificates {
@@ -68,7 +67,7 @@ export const generateKubeAggregatorCerts = (): KubeAggregatorCertificates => {
     return {
         ca,
         client,
-    }
+    };
 };
 
 export const getVirtualClusterAdminKubeconfig = (values: GeneralValues): KubeConfig => {
@@ -95,10 +94,10 @@ export const getVirtualClusterAdminKubeconfig = (values: GeneralValues): KubeCon
     });
     kc.setCurrentContext(contextName);
     return kc;
-}
+};
 
 /**
- * waits until the virtual cluster is ready and returns the KubeClient.
+ * Waits until the virtual cluster is ready and returns the KubeClient.
  */
 export const waitUntilVirtualClusterIsReady = async (log: Logger, values: GeneralValues): Promise<KubeClient> => {
     const instance = axios.create({
@@ -107,7 +106,7 @@ export const waitUntilVirtualClusterIsReady = async (log: Logger, values: Genera
             cert: values.apiserver.tls.admin.cert,
             key: values.apiserver.tls.admin.privateKey,
         }),
-    })
+    });
     await retryWithBackoff(async (): Promise<boolean> => {
         try {
             const req = await instance.get(values.apiserver.url);
@@ -119,7 +118,7 @@ export const waitUntilVirtualClusterIsReady = async (log: Logger, values: Genera
         }
         return false;
     });
-    log.info('Virtual cluster ready')
+    log.info('Virtual cluster ready');
 
     return new DefaultKubeClient(getVirtualClusterAdminKubeconfig(values));
-}
+};

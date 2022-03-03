@@ -1,13 +1,13 @@
-import { has } from "./utils/has";
 import validator from 'validator';
-import { Values } from "./plugins/Helm";
-import { State } from "./state/State";
-import { generateKey, KeypairPEM } from "./utils/tls";
-import { ETCDCertificates, generateETCDCerts } from "./etcd";
-import { generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates } from "./VirtualCluster";
-import { deepMergeObject } from "./utils/deepMerge";
-import { createLogger } from "./log/Logger";
-import { GardenerCertificates, generateGardenerCerts } from "./Gardener";
+import {has} from './utils/has';
+import {Values} from './plugins/Helm';
+import {State} from './state/State';
+import {generateKey, KeypairPEM} from './utils/tls';
+import {ETCDCertificates, generateETCDCerts} from './etcd';
+import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates} from './VirtualCluster';
+import {deepMergeObject} from './utils/deepMerge';
+import {createLogger} from './log/Logger';
+import {GardenerCertificates, generateGardenerCerts} from './Gardener';
 
 const log = createLogger('Values');
 
@@ -55,7 +55,7 @@ export const emptyStateFile: StateValues = {
         aggregator: {},
     },
     gardener: {},
-}
+};
 
 export interface InputValues {
     landscapeName: string,
@@ -130,14 +130,14 @@ export interface InputValues {
     },
 
     [key: string]: any,
-};
+}
 
 export interface GeneralValues extends InputValues {
     host: string,
     ingressHost: string,
     gardenerHost: string,
     issuerUrl: string,
-    
+
     wildcardSecretName: string,
 
     apiserver: {
@@ -188,7 +188,7 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
         stateValues['gardener-dashboard'].sessionSecret,
         30,
     );
-    
+
     if (!has(stateValues.etcd.tls)) {
         log.info('etcd certs not found. Generating...');
         stateValues.etcd.tls = generateETCDCerts(GardenerNamespace);
@@ -235,12 +235,12 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
             url: apiserverUrl,
         },
         dnsController: {
-            class: 'garden-host'
+            class: 'garden-host',
         },
     }, input);
 
     return general;
-}
+};
 
 const validateInput = (input: InputValues): void => {
     required(input, 'host');
@@ -254,13 +254,13 @@ const validateInput = (input: InputValues): void => {
     required(input, 'hostCluster', 'network', 'nodeCIDR');
     required(input, 'hostCluster', 'network', 'podCIDR');
     required(input, 'hostCluster', 'network', 'serviceCIDR');
-}
+};
 
 const validateStateAndInputValues = (input: InputValues): void => {
     required(input, 'identity', 'dashboardClientSecret');
     required(input, 'identity', 'kubectlClientSecret');
     required(input, 'gardener-dashboard', 'sessionSecret');
-}
+};
 
 const generateRandomIfNotDefined = (value: string | undefined, state: string | undefined, length: number): string => {
     if (has(value)) {
@@ -270,19 +270,19 @@ const generateRandomIfNotDefined = (value: string | undefined, state: string | u
         return state as string;
     }
     return randomString(length);
-}
+};
 
 const required = (values: Values, ...path: string[]) => {
     let lastObj = values;
     let objPath = '';
-    for(const p of path) {
+    for (const p of path) {
         objPath += `.${p}`;
-        if(!has(lastObj[p])) {
-            throw new Error(`${objPath} is required`)
+        if (!has(lastObj[p])) {
+            throw new Error(`${objPath} is required`);
         }
         lastObj = lastObj[p];
     }
-}
+};
 
 /**
  * Adds the prefix as subdomain to the domain
@@ -292,14 +292,14 @@ const addDomainPrefix = (domain: string, prefix?: string): string => {
         return domain;
     }
     return `${prefix}.${domain}`;
-}
+};
 
 const randomString = (length: number): string => {
     let result           = '';
     const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     const charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
+    for ( let i = 0; i < length; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
    }
    return result;
-}
+};

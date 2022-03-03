@@ -1,6 +1,5 @@
-import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
-import { GardenerNamespace, GeneralValues } from "../../../ts/Values";
-
+import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
+import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
 
 export class IdentityChart extends Chart {
     constructor() {
@@ -8,7 +7,7 @@ export class IdentityChart extends Chart {
             'identity',
             new ChartPath('./src/charts/host/identity'),
             GardenerNamespace,
-        )
+        );
     }
 
     public async renderValues(values: GeneralValues): Promise<Values> {
@@ -17,7 +16,7 @@ export class IdentityChart extends Chart {
             kubectlClientSecret: '',
             dashboardOrigins: [
                 `https://${values.gardenerHost}`,
-                `https://${values.gardenerHost}/oidc`
+                `https://${values.gardenerHost}/oidc`,
             ],
             issuerUrl: values.issuerUrl,
             tlsSecretName: values.wildcardSecretName,

@@ -1,6 +1,5 @@
-import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
-import { GardenerNamespace, GeneralValues } from "../../../ts/Values";
-
+import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
+import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
 
 export class GardenerDashboardChart extends Chart {
     constructor() {
@@ -8,7 +7,7 @@ export class GardenerDashboardChart extends Chart {
             'gardener-dashboard',
             new ChartPath('./src/charts/host/gardener-dashboard'),
             GardenerNamespace,
-        )
+        );
     }
 
     public async renderValues(values: GeneralValues): Promise<Values> {
@@ -28,7 +27,7 @@ export class GardenerDashboardChart extends Chart {
             oidc: {
                 issuerUrl: values.issuerUrl,
                 clientSecret: values.identity.dashboardClientSecret,
-            }
+            },
         };
     }
 }

@@ -1,19 +1,16 @@
-import { KubeConfig } from "@kubernetes/client-node";
-import { writeFile } from "fs/promises";
-import { Task } from "../flow/Flow";
-import { base64Encode } from "../utils/base64Encode";
-import { KubeClient } from "../utils/KubeClient";
-import { GardenerNamespace, GeneralValues } from "../Values";
+import {writeFile} from 'fs/promises';
 import path from 'path';
-import { createSecret } from "../state/KubernetesState";
-import { retryWithBackoff } from "../utils/exponentialBackoffRetry";
-import { createLogger } from "../log/Logger";
-import { createOrUpdate, enrichKubernetesError } from "../utils/kubernetes";
-import { getVirtualClusterAdminKubeconfig } from "../VirtualCluster";
+import {Task} from '../flow/Flow';
+import {base64Encode} from '../utils/base64Encode';
+import {KubeClient} from '../utils/KubeClient';
+import {GardenerNamespace, GeneralValues} from '../Values';
+import {createSecret} from '../state/KubernetesState';
+import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
+import {createLogger} from '../log/Logger';
+import {createOrUpdate, enrichKubernetesError} from '../utils/kubernetes';
+import {getVirtualClusterAdminKubeconfig} from '../components/VirtualCluster';
 
 const log = createLogger('ExportVirtualClusterAdminKubeconfig');
-
-
 
 export class ExportVirtualClusterAdminKubeconfig extends Task {
     constructor(
@@ -25,12 +22,12 @@ export class ExportVirtualClusterAdminKubeconfig extends Task {
         super('ExportVirtualClusterAdminKubeconfig');
     }
 
-    async do(): Promise<void> {
+    public async do(): Promise<void> {
         const kc = getVirtualClusterAdminKubeconfig(this.values);
         const rawKc = kc.exportConfig();
 
         await writeFile(path.join(this.genDir, 'kubeconfig'), rawKc, 'utf-8');
-        
+
         if (this.dryRun) {
             return;
         }
@@ -41,7 +38,7 @@ export class ExportVirtualClusterAdminKubeconfig extends Task {
                 await createOrUpdate(this.kubeClient, secret, async () => {
                     secret.data = {
                         kubeconfig: base64Encode(rawKc),
-                    }
+                    };
                 });
                 return true;
             } catch (error) {

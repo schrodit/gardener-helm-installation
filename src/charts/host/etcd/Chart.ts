@@ -1,6 +1,5 @@
-import { Chart, ChartPath, Values } from "../../../ts/plugins/Helm";
-import { GardenerNamespace, GeneralValues } from "../../../ts/Values";
-
+import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
+import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
 
 export class EtcdMainChart extends Chart {
     constructor() {
@@ -18,7 +17,7 @@ export class EtcdMainChart extends Chart {
                 ca: {
                     crt: values.etcd.tls.ca.cert,
                     key: values.etcd.tls.ca.privateKey,
-                },      
+                },
                 server: {
                     crt: values.etcd.tls.server.cert,
                     key: values.etcd.tls.server.privateKey,
@@ -48,7 +47,7 @@ export class EtcdEventsChart extends Chart {
                 ca: {
                     crt: values.etcd.tls.ca.cert,
                     key: values.etcd.tls.ca.privateKey,
-                },      
+                },
                 server: {
                     crt: values.etcd.tls.server.cert,
                     key: values.etcd.tls.server.privateKey,

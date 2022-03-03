@@ -1,5 +1,4 @@
-import { spawn, SpawnOptionsWithoutStdio, exec, ExecException } from 'child_process';
-import { PassThrough, Stream, Writable } from 'stream';
+import {exec, ExecException} from 'child_process';
 
 export interface Options {
     printStdout?: boolean,
@@ -18,7 +17,7 @@ export class ExecPromise extends Promise<ExecResult> {
 export const execAsync = (command: string, options: Options = {
     printStderr: true,
     printStdout: true,
-}): ExecPromise => {    
+}): ExecPromise => {
     const promise = new ExecPromise((resolve, reject) => {
         const e = exec(command, (error: ExecException | null, stdout: string, stderr: string) => {
             if (error) {
@@ -33,13 +32,13 @@ export const execAsync = (command: string, options: Options = {
             resolve({
                 stdout,
                 stderr,
-            })
+            });
         });
         if (options.stdin && e.stdin) {
             e.stdin.write(options.stdin);
             e.stdin.end();
         }
-        
+
     });
     return promise;
-}
+};
