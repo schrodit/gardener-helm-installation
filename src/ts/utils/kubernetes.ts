@@ -1,6 +1,8 @@
 import { has } from "@0cfg/utils-common/lib/has";
 import { KubeConfig, KubernetesObject, V1SeccompProfile, V1Secret, V1ServiceAccount } from "@kubernetes/client-node";
 import { createLogger, Logger } from "../log/Logger";
+import { base64Decode } from "./base64Decode";
+import { base64Encode } from "./base64Encode";
 import { retryWithBackoff } from "./exponentialBackoffRetry";
 import { KubeClient } from "./KubeClient";
 
@@ -169,7 +171,7 @@ export const getKubeConfigForServiceAccount = async (client: KubeClient, namespa
     const kc = new KubeConfig();
     kc.addUser({
         name,
-        token,
+        token: base64Decode(token),
     });
     kc.addCluster(currentCluster);
     kc.addContext({
@@ -193,11 +195,11 @@ export const base64EncodeMap = (data: Record<string, any>,
     for (const key in data) {
         const d = data[key];
         if (options.jsonIgnoreString && typeof d === 'string') {
-            raw[key] = Buffer.from(d, 'utf-8').toString('base64');
+            raw[key] = base64Encode(d);
             continue;
         }
 
-        raw[key] = Buffer.from(JSON.stringify(d), 'utf-8').toString('base64');
+        raw[key] = base64Encode(JSON.stringify(d));
     }
     return raw;
 }
