@@ -13,9 +13,10 @@ import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
 
 const log = createLogger('Gardener');
 
-const GardenerVersion = 'v1.41.1';
-const GardenerRepoZipUrl = `https://github.com/gardener/gardener/archive/refs/tags/${GardenerVersion}.zip`;
-const GardenerChartBasePath = `gardener-${trimPrefix(GardenerVersion, 'v')}/charts/gardener/controlplane/charts`;
+export const GardenerVersion = 'v1.41.1';
+export const GardenerRepoZipUrl = `https://github.com/gardener/gardener/archive/refs/tags/${GardenerVersion}.zip`;
+export const GardenerChartsBasePath = `gardener-${trimPrefix(GardenerVersion, 'v')}/charts/gardener`;
+export const GardenerChartBasePath = path.join(GardenerChartsBasePath, 'controlplane/charts');
 
 export interface GardenerCertificates {
     ca: CA,

@@ -9,6 +9,7 @@ import {deepMergeObject} from './utils/deepMerge';
 import {createLogger} from './log/Logger';
 import {GardenerCertificates, generateGardenerCerts} from './Gardener';
 import {DNSValues} from './components/DNS';
+import { randomString } from './utils/randomString';
 
 const log = createLogger('Values');
 
@@ -68,6 +69,8 @@ export interface InputValues {
     wildcardSecretName: string,
 
     hostCluster: {
+        provider: string,
+        region: string,
         network: {
             serviceCIDR: string,
             podCIDR: string,
@@ -120,7 +123,16 @@ export interface InputValues {
         }
         scheduler: {
             [key: string]: any,
-        }
+        },
+
+        soil: {
+            shootDefaultNetworks: {
+                pods: string,
+                services: string,
+            },
+            blockCIDRs: string[],
+            settings: Values,
+        },
     }
 
     etcd: {
@@ -166,6 +178,8 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
     const gardenerHost = addDomainPrefix(ingressHost, input.gardenerDomainPrefix);
     const apiserverHost = addDomainPrefix(ingressHost, input.apiserverDomainPrefix);
     const apiserverUrl = `https://${apiserverHost}`;
+    const internalApiserverHost = '';
+    const internalApiserverUrl = `https://${apiserverHost}`;
     const issuerUrl = `https://${gardenerHost}/oidc`;
 
     const stateValues = await state.get();
@@ -249,6 +263,8 @@ const validateInput = (input: InputValues): void => {
     required(input, 'acme', 'email');
     required(input, 'dns', 'provider');
     required(input, 'dns', 'credentials');
+    required(input, 'hostCluster', 'provider');
+    required(input, 'hostCluster', 'region');
     required(input, 'hostCluster', 'network', 'nodeCIDR');
     required(input, 'hostCluster', 'network', 'podCIDR');
     required(input, 'hostCluster', 'network', 'serviceCIDR');
@@ -290,14 +306,4 @@ const addDomainPrefix = (domain: string, prefix?: string): string => {
         return domain;
     }
     return `${prefix}.${domain}`;
-};
-
-const randomString = (length: number): string => {
-    let result           = '';
-    const characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for ( let i = 0; i < length; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-   }
-   return result;
 };
