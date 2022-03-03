@@ -8,6 +8,7 @@ import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorC
 import {deepMergeObject} from './utils/deepMerge';
 import {createLogger} from './log/Logger';
 import {GardenerCertificates, generateGardenerCerts} from './Gardener';
+import {DNSValues} from './components/DNS';
 
 const log = createLogger('Values');
 
@@ -85,10 +86,7 @@ export interface InputValues {
         [key: string]: any,
     }
 
-    dns: {
-        provider: string,
-        credentials: Record<string, any>
-    }
+    dns: DNSValues,
 
     acme: {
         email: string,
