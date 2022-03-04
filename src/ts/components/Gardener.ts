@@ -5,7 +5,7 @@ import {createLogger} from '../log/Logger';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../plugins/Helm';
 import {KubeClient} from '../utils/KubeClient';
 import {trimPrefix} from '../utils/trimPrefix';
-import {GardenerNamespace, GeneralValues} from '../Values';
+import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../Values';
 import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
 import {getKubeConfigForServiceAccount, serviceHosts} from '../utils/kubernetes';
 import {deepMergeObject} from '../utils/deepMerge';
@@ -310,6 +310,7 @@ class RuntimeChart extends Chart {
         super(
             'gardener-runtime',
             new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartBasePath, 'runtime')),
+            GardenerNamespace,
         );
     }
 
@@ -323,6 +324,7 @@ class ApplicationChart extends Chart {
         super(
             'gardener-application',
             new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartBasePath, 'application')),
+            GardenSystemNamespace,
         );
     }
 

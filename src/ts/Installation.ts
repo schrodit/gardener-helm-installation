@@ -10,6 +10,7 @@ import {DnsControllerChart} from '../charts/host/external-dns-management/Chart';
 import {HostConfigurationChart} from '../charts/host/configuration/Chart';
 import {EtcdEventsChart, EtcdMainChart} from '../charts/host/etcd/Chart';
 import {VirtualClusterChart} from '../charts/host/virtual-cluster/Chart';
+import {GardenerDashboardChart} from '../charts/host/gardener-dashboard/Chart';
 import {Helm, InstalledRelease} from './plugins/Helm';
 import {DefaultNamespace, emptyStateFile, generateGardenerInstallationValues, StateValues} from './Values';
 import {KeyValueState, State} from './state/State';
@@ -24,7 +25,8 @@ import {Flow} from './flow/Flow';
 import {HelmTaskFactory} from './flow/HelmTask';
 import {KubeApplyFactory} from './flow/KubeApplyTask';
 import {ExportVirtualClusterAdminKubeconfig} from './tasks/ExportApiserverKubeconfig';
-import {Gardener} from './Gardener';
+import {Gardener} from './components/Gardener';
+import {GardenerExtensionsTask} from './components/GardenerExtensions';
 
 const log = createLogger('Installation');
 
@@ -35,6 +37,7 @@ export interface InstallationConfig {
 }
 
 const defaultValuesFile = './default.yaml';
+const extensionsValuesFile = './extensions.yaml';
 const genDir = './gen';
 const stateFile = './state/state.yaml';
 const helmStateFile = './state/helm-state.yaml';
@@ -97,7 +100,7 @@ export class Installation {
                 DefaultNamespace,
             );
         }
-        config.valueFiles = [defaultValuesFile].concat(config.valueFiles);
+        config.valueFiles = [defaultValuesFile, extensionsValuesFile].concat(config.valueFiles);
         const inst = new Installation(kubeClient, config, state, helmState, kubeApplyState);
 
         await inst.install();
@@ -134,13 +137,11 @@ export class Installation {
                 values,
                 this.config.dryRun,
             ),
+            new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.config.dryRun),
+            helmTaskFactory.createTask(new GardenerDashboardChart()),
         );
 
         await flow.execute();
-
-        // await this.helm.createOrUpdate(
-        //     await new GardenerDashboardChart().getRelease(values),
-        // );
     }
 
     private async readValueFiles(): Promise<any> {

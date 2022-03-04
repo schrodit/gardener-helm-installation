@@ -1,14 +1,14 @@
 import {Agent} from 'https';
 import {KubeConfig} from '@kubernetes/client-node';
 import axios from 'axios';
-import {Logger} from './log/Logger';
-import {base64Encode} from './utils/base64Encode';
-import {DefaultKubeClient} from './utils/DefaultKubeClient';
-import {retryWithBackoff} from './utils/exponentialBackoffRetry';
-import {KubeClient} from './utils/KubeClient';
-import {serviceHosts} from './utils/kubernetes';
-import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from './utils/tls';
-import {GeneralValues} from './Values';
+import {Logger} from '../log/Logger';
+import {base64Encode} from '../utils/base64Encode';
+import {DefaultKubeClient} from '../utils/DefaultKubeClient';
+import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
+import {KubeClient} from '../utils/KubeClient';
+import {serviceHosts} from '../utils/kubernetes';
+import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
+import {GeneralValues} from '../Values';
 
 export interface KubeApiserverCertificates {
     ca: CA,

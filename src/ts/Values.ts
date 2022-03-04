@@ -3,13 +3,14 @@ import {has} from './utils/has';
 import {Values} from './plugins/Helm';
 import {State} from './state/State';
 import {generateKey, KeypairPEM} from './utils/tls';
-import {ETCDCertificates, generateETCDCerts} from './etcd';
-import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates} from './VirtualCluster';
+import {ETCDCertificates, generateETCDCerts} from './components/etcd';
+import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates} from './components/VirtualCluster';
 import {deepMergeObject} from './utils/deepMerge';
 import {createLogger} from './log/Logger';
-import {GardenerCertificates, generateGardenerCerts} from './Gardener';
+import {GardenerCertificates, generateGardenerCerts} from './components/Gardener';
 import {DNSValues} from './components/DNS';
-import { randomString } from './utils/randomString';
+import {randomString} from './utils/randomString';
+import {GardenerExtension} from './components/GardenerExtensions';
 
 const log = createLogger('Values');
 
@@ -133,6 +134,8 @@ export interface InputValues {
             blockCIDRs: string[],
             settings: Values,
         },
+
+        extensions: Record<string, GardenerExtension>,
     }
 
     etcd: {
@@ -286,7 +289,7 @@ const generateRandomIfNotDefined = (value: string | undefined, state: string | u
     return randomString(length);
 };
 
-const required = (values: Values, ...path: string[]) => {
+export const required = (values: Values, ...path: string[]) => {
     let lastObj = values;
     let objPath = '';
     for (const p of path) {

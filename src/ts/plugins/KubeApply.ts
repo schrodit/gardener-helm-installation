@@ -74,13 +74,14 @@ export class KubeApply {
     ) {
     }
 
-    public async apply(manifest: Manifest): Promise<void> {
+    public async apply(manifest: Manifest, kubeClient?: KubeClient): Promise<void> {
         const manifests = await manifest.getManifests();
 
         if (this.dryRun) {
             this.state.store(manifest.name,
                 manifests.map(m => this.getRawManifest(m))
             );
+            manifests.forEach(m => console.log(YAML.stringify(m)));
             return;
         }
 
@@ -89,14 +90,18 @@ export class KubeApply {
         );
     }
 
-    private async applyManifest(manifest: KubernetesObject): Promise<KubernetesObject> {
+    private async applyManifest(manifest: KubernetesObject, kubeClient?: KubeClient): Promise<KubernetesObject> {
         log.info(`Create manifest ${manifest.kind} ${manifest.metadata?.name}`);
         await retryWithBackoff(async (): Promise<boolean> => {
             const obj = this.getRawManifest(manifest);
             try {
-                await createOrUpdate(this.kubeClient, this.getRawManifest(manifest), async () => {
-                    Object.assign(obj, manifest);
-                });
+                await createOrUpdate(
+                    kubeClient ?? this.kubeClient,
+                    this.getRawManifest(manifest),
+                    async () => {
+                        Object.assign(obj, manifest);
+                    },
+                );
                 return true;
             } catch (error) {
                 log.error(enrichKubernetesError(manifest, error).message);

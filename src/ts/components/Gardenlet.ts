@@ -1,16 +1,16 @@
-import { Task } from "../flow/Flow";
-import { Chart, Helm, RemoteChartFromZip, Values } from "../plugins/Helm";
-import { GardenerChartsBasePath, GardenerRepoZipUrl, GardenerVersion } from "./Gardener";
 import path from 'path';
-import { GardenerNamespace, GeneralValues, KubeSystemNamespace } from "../Values";
-import { createLogger } from "../log/Logger";
-import { KubeConfig, V1SeccompProfile, V1Secret } from "@kubernetes/client-node";
-import { randomString } from "../utils/randomString";
-import { retryWithBackoff } from "../utils/exponentialBackoffRetry";
-import { enrichKubernetesError } from "../utils/kubernetes";
-import { waitUntilVirtualClusterIsReady } from "./VirtualCluster";
-import { KubeClient } from "../utils/KubeClient";
-import { base64Encode } from "../utils/base64Encode";
+import {KubeConfig, V1Secret} from '@kubernetes/client-node';
+import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../Values';
+import {createLogger} from '../log/Logger';
+import {Chart, Helm, RemoteChartFromZip, Values} from '../plugins/Helm';
+import {Task} from '../flow/Flow';
+import {randomString} from '../utils/randomString';
+import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
+import {enrichKubernetesError} from '../utils/kubernetes';
+import {KubeClient} from '../utils/KubeClient';
+import {base64Encode} from '../utils/base64Encode';
+import {GardenerChartsBasePath, GardenerRepoZipUrl, GardenerVersion} from './Gardener';
+import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
 
 const log = createLogger('Gardenlet');
 
@@ -26,10 +26,9 @@ export class Gardenlet extends Task {
         private readonly helm: Helm,
         private readonly values: GeneralValues,
         private readonly dryRun: boolean,
-    ){
+    ) {
         super('Gardenlet');
     }
-
 
     public async do(): Promise<void> {
         log.info('Installing Gardenlet');
@@ -42,8 +41,7 @@ export class Gardenlet extends Task {
         const gardenletChart = new GardenletChart(gardenletKubeConfig.exportConfig());
         await this.helm.createOrUpdate(await gardenletChart.getRelease(this.values), this.virtualClient?.getKubeConfig());
 
-
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 
     /**
@@ -85,8 +83,8 @@ export class Gardenlet extends Task {
     private initialGardenletKubeconfig(token: string): KubeConfig {
         const kc = new KubeConfig();
         const cluster = this.virtualClient?.getKubeConfig().getCurrentCluster();
-        if(!cluster) {
-            throw new Error(`No cluster defined in virtual cluster kubeconfig`);
+        if (!cluster) {
+            throw new Error('No cluster defined in virtual cluster kubeconfig');
         }
         kc.addCluster(cluster);
         kc.addUser({
@@ -103,7 +101,6 @@ export class Gardenlet extends Task {
     }
 
 }
-
 
 class GardenletChart extends Chart {
     constructor(private readonly gardenletKubeconfig: string) {
@@ -166,9 +163,9 @@ class GardenletChart extends Chart {
                     type: values.dns.provider,
                     credentials: values.dns.credentials,
                 },
-                ingressDomain: `host.${values.ingressHost}`,                
+                ingressDomain: `host.${values.ingressHost}`,
             },
             settings: values.gardener.soil.settings,
-        }
+        };
     }
 }

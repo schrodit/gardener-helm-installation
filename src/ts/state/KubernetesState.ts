@@ -1,21 +1,21 @@
-import { KeyValueState, State } from "./State";
-import { has } from "../utils/has";
-import { deepMergeObject } from "../utils/deepMerge";
-import { KubeClient } from "../utils/KubeClient";
-import { V1Secret } from "@kubernetes/client-node";
-import { retryWithBackoff } from "../utils/exponentialBackoffRetry";
-import { createOrUpdate, enrichKubernetesError, isNotFoundError } from "../utils/kubernetes";
-import { createLogger } from "../log/Logger";
+import {V1Secret} from '@kubernetes/client-node';
+import {has} from '../utils/has';
+import {deepMergeObject} from '../utils/deepMerge';
+import {KubeClient} from '../utils/KubeClient';
+import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
+import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../utils/kubernetes';
+import {createLogger} from '../log/Logger';
+import {KeyValueState, State} from './State';
 
 const log = createLogger('KubernetesState');
 
 const secretStateKey = 'state';
 
-const secretNamePrefix = 'gardener-installer-'
+const secretNamePrefix = 'gardener-installer-';
 
 const secretName = (name: string): string => {
     return secretNamePrefix + name;
-}
+};
 
 export const createSecret = (namespace:string, name: string): V1Secret => {
     return {
@@ -26,8 +26,7 @@ export const createSecret = (namespace:string, name: string): V1Secret => {
             namespace,
         },
     };
-}
-
+};
 
 class KubernetesStateBase<T> {
     private readonly secretName: string;
@@ -36,7 +35,7 @@ class KubernetesStateBase<T> {
         private readonly kubeClient: KubeClient,
         private readonly name: string,
         private readonly namespace: string,
-    ){
+    ) {
         this.secretName = secretName(this.name);
     }
 
@@ -85,7 +84,7 @@ class KubernetesStateBase<T> {
 
         return secret.data!;
     }
-} 
+}
 
 export class KubernetesState<T> extends KubernetesStateBase<T> implements State<T> {
 
@@ -94,11 +93,11 @@ export class KubernetesState<T> extends KubernetesStateBase<T> implements State<
         name: string,
         namespace: string,
         private readonly empty: T,
-    ){
+    ) {
         super(kubeClient, name, namespace);
     }
-    
-    async get(): Promise<T> {
+
+    public async get(): Promise<T> {
         const content = await this.getDataFromSecret();
         if (!has(content)) {
             return this.empty;
@@ -108,26 +107,26 @@ export class KubernetesState<T> extends KubernetesStateBase<T> implements State<
         return deepMergeObject(this.empty, obj);
     }
 
-    async store(data: T): Promise<void> {
+    public async store(data: T): Promise<void> {
         await this.storeInSecret({
             [secretStateKey]: data,
-        })
+        });
     }
-    
+
 }
 
 export class KubernetesKeyValueState<T> extends KubernetesStateBase<T> implements KeyValueState<T> {
     private data?: Record<string, T>;
 
-    async getAll(): Promise<Record<string, T>> {
+    public async getAll(): Promise<Record<string, T>> {
         return await this.getData();
     }
-    
-    async get(key: string): Promise<T | undefined> {
+
+    public async get(key: string): Promise<T | undefined> {
         return (await this.getData())[key];
     }
 
-    async store(key: string, data: T): Promise<void> {
+    public async store(key: string, data: T): Promise<void> {
         const d = await this.getData();
         d[key] = data;
         await this.storeInSecret(d);
@@ -146,5 +145,5 @@ export class KubernetesKeyValueState<T> extends KubernetesStateBase<T> implement
         }
         return this.data as Record<string, T>;
     }
-    
+
 }

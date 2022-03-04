@@ -1,5 +1,5 @@
-import {serviceHosts} from './utils/kubernetes';
-import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from './utils/tls';
+import {serviceHosts} from '../utils/kubernetes';
+import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
 
 export interface ETCDCertificates {
     ca: CA,

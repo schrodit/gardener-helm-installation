@@ -1,7 +1,6 @@
 import {access, mkdir, writeFile} from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import * as extract from 'extract-zip';
 import {KubeConfig} from '@kubernetes/client-node';
 import {createLogger} from '../log/Logger';
 import {KeyValueState} from '../state/State';
@@ -9,8 +8,7 @@ import {GeneralValues} from '../Values';
 import {deepMergeObject} from '../utils/deepMerge';
 import {execAsync} from '../utils/execAsync';
 import {has} from '../utils/has';
-import {downloadFile} from '../utils/downloadFile';
-import {createDir} from '../utils/createDir';
+import {DownloadManager} from '../utils/DownloadManager';
 
 const log = createLogger('Helm');
 
@@ -101,39 +99,10 @@ export class RemoteChartFromZip implements ChartContent, InjectGenDir {
         if (!has(this.genDir)) {
             throw new Error('Gen Directory not set');
         }
-        const tmpDir = path.join(this.genDir!, 'tmp');
-        const cache = path.join(this.genDir!, 'cache');
-        const extractedDir = path.join(cache, this.fileName());
-        await createDir(tmpDir);
-        await createDir(cache);
-
-        try {
-            await access(extractedDir);
-        } catch (error) {
-            await this.downloadAndExtract(tmpDir, extractedDir);
-        }
+        const dm = new DownloadManager(this.genDir!);
+        const extractedDir = await dm.downloadAndExtractZip(this.url);
 
         return path.resolve(path.join(extractedDir, this.path));
-    }
-
-    private async downloadAndExtract(tmpDir: string, extractedDir: string): Promise<void> {
-        const zipFile = path.join(tmpDir, this.fileName());
-
-        try {
-            await access(zipFile);
-        } catch (error) {
-            await downloadFile(this.url, zipFile);
-        }
-
-        extract.default(zipFile, {
-            dir: path.resolve(extractedDir),
-        });
-    }
-
-    private fileName(): string {
-        const shasum = crypto.createHash('sha1');
-        shasum.update(this.url);
-        return shasum.digest('hex');
     }
 }
 

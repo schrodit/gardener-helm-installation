@@ -1,0 +1,37 @@
+
+gardener:
+  extensions:
+    shoot-dns-service:
+      enabled: true
+      global: true
+
+      version: v1.18.0
+      controllerRegistration:
+        repositoryName: gardener-extension-shoot-dns-service
+
+      values:
+        dnsProviderReplication:
+          enabled: true
+
+    shoot-cert-service:
+      enabled: true
+      global: true
+
+      version: v1.18.0
+      controllerRegistration:
+        repositoryName: gardener-extension-shoot-cert-service
+
+      values:
+        certificateConfig:
+          defaultIssuer:
+            acme:
+              email: foo@example.com
+              server: https://acme-v02.api.letsencrypt.org/directory
+            name: default-issuer
+
+          imageVectorOverwrite: |
+            images:
+            - name: cert-management
+              sourceRepository: github.com/gardener/cert-management
+              repository: eu.gcr.io/gardener-project/cert-controller-manager
+              tag: "v0.8.7"
