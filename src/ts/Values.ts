@@ -11,6 +11,7 @@ import {GardenerCertificates, generateGardenerCerts} from './components/Gardener
 import {DNSValues} from './components/DNS';
 import {randomString} from './utils/randomString';
 import {GardenerExtension} from './components/GardenerExtensions';
+import {GardenerInitConfig} from "./components/GardenerInitConfig";
 
 const log = createLogger('Values');
 
@@ -134,6 +135,8 @@ export interface InputValues {
             blockCIDRs: string[],
             settings: Values,
         },
+
+        initConfig: GardenerInitConfig,
 
         extensions: Record<string, GardenerExtension>,
     }

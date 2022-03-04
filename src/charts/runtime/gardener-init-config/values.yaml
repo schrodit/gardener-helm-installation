@@ -1,0 +1,17 @@
+
+# defaultOwner:
+#  apiGroup: rbac.authorization.k8s.io
+#  kind: User
+#  name: john.doe@example.com
+defaultMembers: []
+
+projects: []
+#- name: 'dev'
+#  description: ''
+#  purpose: ''
+#  members:
+#  - apiGroup: rbac.authorization.k8s.io
+#    kind: User
+#    name: alice.doe@example.com
+#    role: admin
+#    roles: []

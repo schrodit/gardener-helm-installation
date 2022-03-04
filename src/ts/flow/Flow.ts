@@ -35,6 +35,7 @@ export class Flow {
     }
 
     private async executeTask(task: Task): Promise<void> {
+        log.info('');
         log.info(`Start executing ${task.name}`, {task: task.name});
 
         await task.do();

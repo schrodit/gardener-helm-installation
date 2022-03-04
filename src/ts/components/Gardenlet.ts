@@ -41,7 +41,7 @@ export class Gardenlet extends Task {
         const gardenletChart = new GardenletChart(gardenletKubeConfig.exportConfig());
         await this.helm.createOrUpdate(await gardenletChart.getRelease(this.values), this.virtualClient?.getKubeConfig());
 
-        throw new Error('Method not implemented.');
+        log.info('Gardenlet installed');
     }
 
     /**
@@ -159,7 +159,7 @@ class GardenletChart extends Chart {
                 blockCIDRs: values.gardener.soil.blockCIDRs,
             },
             dns: {
-                proviuder: {
+                provider: {
                     type: values.dns.provider,
                     credentials: values.dns.credentials,
                 },

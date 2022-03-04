@@ -27,6 +27,8 @@ import {KubeApplyFactory} from './flow/KubeApplyTask';
 import {ExportVirtualClusterAdminKubeconfig} from './tasks/ExportApiserverKubeconfig';
 import {Gardener} from './components/Gardener';
 import {GardenerExtensionsTask} from './components/GardenerExtensions';
+import {Gardenlet} from './components/Gardenlet';
+import {GardenerInitConfigTask} from "./components/GardenerInitConfig";
 
 const log = createLogger('Installation');
 
@@ -139,6 +141,8 @@ export class Installation {
             ),
             new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.config.dryRun),
             helmTaskFactory.createTask(new GardenerDashboardChart(this.config.dryRun)),
+            new GardenerInitConfigTask(this.helm, values, this.config.dryRun),
+            new Gardenlet(this.helm, values, this.config.dryRun),
         );
 
         await flow.execute();

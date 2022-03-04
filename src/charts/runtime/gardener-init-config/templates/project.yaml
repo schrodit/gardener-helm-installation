@@ -1,0 +1,34 @@
+# Project objects logically group team members, secrets, and Shoot clusters. They result in Kubernetes namespaces
+  # prefixed with "garden-".
+
+{{- $global := .Values }}
+{{- range .Values.projects }}
+---
+apiVersion: core.gardener.cloud/v1beta1
+kind: Project
+metadata:
+  name: {{ .name }}
+spec:
+  owner: {{ .owner | default $global.defaultOwner | toJson }}
+{{- if or .members $global.defaultMembers }}
+  members:
+{{- if .members }}
+{{ .members | toYaml | indent 2 }}
+{{- end }}
+{{- if $global.defaultMembers }}
+{{ $global.defaultMembers | toYaml | indent 2 }}
+{{- end }}
+{{- end }}
+  description: {{ .description }}
+  purpose: {{ .purpose }}
+  # The `spec.namespace` field is optional and will be initialized if unset - the resulting
+  # namespace will be generated and look like "garden-dev-<random-chars>", e.g. "garden-dev-5z43z".
+  # If the namespace is set then the namespace must be labelled with `gardener.cloud/role: project`
+  # and `project.gardener.cloud/name: <project-name>` (<project-name>=dev in this case).
+  # namespace: garden-dev
+# tolerations:
+#   defaults:
+#   - key: <some-key>
+#   whitelist:
+  #   - key: <some-key>
+{{- end }}
