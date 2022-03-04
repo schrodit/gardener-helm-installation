@@ -138,7 +138,7 @@ export class Installation {
                 this.config.dryRun,
             ),
             new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.config.dryRun),
-            helmTaskFactory.createTask(new GardenerDashboardChart()),
+            helmTaskFactory.createTask(new GardenerDashboardChart(this.config.dryRun)),
         );
 
         await flow.execute();

@@ -77,7 +77,11 @@ export class GardenerExtensionsTask extends Task {
         const extractedDir = await this.dm.downloadAndExtractZip(url);
 
         const registration = YAML.parseAllDocuments(await readFile(
-            path.join(extractedDir, defaultControllerRegistrationPath(extension.controllerRegistration.repositoryName, extension.version)),
+            path.join(
+                extractedDir,
+                repositoryBasePath(extension.controllerRegistration.repositoryName, extension.version),
+                extension.controllerRegistration.path ?? defaultControllerRegistrationPath,
+            ),
             'utf-8',
         )).map(doc => doc.toJSON());
         const reg: ControllerRegistration = {
@@ -137,9 +141,11 @@ const githubReleaseZipUrl = (repositoryUrl: string, version: string): string => 
     return `${repositoryUrl}/archive/refs/tags/${version}.zip`;
 };
 
-const defaultControllerRegistrationPath = (repositoryName: string, version: string): string => {
-    return `${repositoryName}-${trimPrefix(version, 'v')}/example/controller-registration.yaml`;
+const repositoryBasePath = (repositoryName: string, version: string): string => {
+    return `${repositoryName}-${trimPrefix(version, 'v')}`;
 };
+
+const defaultControllerRegistrationPath = '/example/controller-registration.yaml';
 
 const defaultChartPath = (name: string): string => {
     return `charts/${name}`;

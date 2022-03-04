@@ -48,6 +48,7 @@ export const serviceHosts = (svcName: string, ns: string): string[] => {
             Object.assign(object, readResponse.body);
             await mutate();
         }
+        object.metadata!.resourceVersion = readResponse.body.metadata!.resourceVersion;
         const replaceResponse = await client.replace(object);
         Object.assign(object, replaceResponse.body);
         return;

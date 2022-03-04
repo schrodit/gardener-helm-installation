@@ -1,6 +1,37 @@
 
 gardener:
   extensions:
+    os-coreos:
+      enabled: true
+      version: v1.9.0
+      controllerRegistration:
+        repositoryName: gardener-extension-os-coreos
+
+    provider-gcp:
+      enabled: true
+      version: v1.21.0
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-gcp
+
+    external-dns:
+      enabled: true
+      version: v0.12.0
+      controllerRegistration:
+        repositoryName: external-dns-management
+        path: /examples/controller-registration.yaml
+
+    provider-equinix:
+      enabled: true
+      version: v2.2.0
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-equinix-metal
+
+    networking-calico:
+      enabled: true
+      version: v1.10.0
+      controllerRegistration:
+        repositoryName: gardener-extension-networking-cilium
+
     shoot-dns-service:
       enabled: true
       global: true

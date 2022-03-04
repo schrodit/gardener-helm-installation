@@ -1,8 +1,11 @@
+.idea
+
 dev
 tmp
-**/helmfile-*
 
 node_modules
+# jest
+.build-tmp
 
 # gardener installer related directories.
 gen

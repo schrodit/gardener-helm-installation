@@ -1,4 +1,4 @@
-import {DNS} from '../../../ts/components/DNS';
+import {DNS, nonRedundantDnsNames} from '../../../ts/components/DNS';
 import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
 import {base64EncodeMap} from '../../../ts/utils/kubernetes';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../../ts/Values';
@@ -19,11 +19,11 @@ export class HostConfigurationChart extends Chart {
             namespaces: [GardenerNamespace, GardenSystemNamespace],
             secretNamespaces: [GardenerNamespace, GardenSystemNamespace],
             commonDnsName: values.ingressHost,
-            dnsNames: [
+            dnsNames: nonRedundantDnsNames([
                 `*.${values.ingressHost}`,
                 values.gardenerHost,
                 values.apiserver.host,
-            ],
+            ]),
             includesDnsNames: [
                 values.ingressHost,
                 values.gardenerHost,

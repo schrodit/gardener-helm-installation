@@ -86,7 +86,7 @@ export class KubeApply {
         }
 
         await this.state.store(manifest.name,
-            await Promise.all(manifests.map(m => this.applyManifest(m)))
+            await Promise.all(manifests.map(m => this.applyManifest(m, kubeClient)))
         );
     }
 
@@ -97,7 +97,7 @@ export class KubeApply {
             try {
                 await createOrUpdate(
                     kubeClient ?? this.kubeClient,
-                    this.getRawManifest(manifest),
+                    obj,
                     async () => {
                         Object.assign(obj, manifest);
                     },
@@ -105,6 +105,7 @@ export class KubeApply {
                 return true;
             } catch (error) {
                 log.error(enrichKubernetesError(manifest, error).message);
+                log.debug(JSON.stringify(obj, null, '  '));
                 return false;
             }
         });

@@ -1,13 +1,26 @@
-import {Logger as wLogger, createLogger as createWLogger, config, transports, format} from 'winston';
+import {
+    Logger as wLogger,
+    createLogger as createWLogger,
+    config, transports,
+    format as wformat,
+} from 'winston';
+import * as logform from 'logform';
 import {deepMergeObject} from '../utils/deepMerge';
 
 export enum LogLevel {
     INFO = 'info',
     ERROR = 'error',
+    DEBUG = 'debug',
+}
+
+export enum LogFormat {
+    CLI = 'cli',
+    JSON = 'json'
 }
 
 class LogCollector {
     private level: LogLevel = LogLevel.INFO;
+    private format: logform.Format = wformat.cli();
     public logger!: wLogger;
 
     constructor() {
@@ -19,22 +32,33 @@ class LogCollector {
         this.setLogger();
     }
 
+    public setFormat(format: LogFormat) {
+        switch (format) {
+            case LogFormat.CLI:
+                this.format = wformat.cli();
+                break;
+            case LogFormat.JSON:
+                this.format = wformat.json();
+                break;
+        }
+        this.setLogger();
+    }
+
     private setLogger() {
         this.logger = createWLogger(
             {
                 levels: config.cli.levels,
                 level: this.level,
-                format: format.cli(),
+                format: this.format,
                 transports: [
                     new transports.Console(),
                 ],
             }
         );
     }
-
 }
 
-const logCollector = new LogCollector();
+export const logCollector = new LogCollector();
 
 export type Labels = Record<string, any>
 
@@ -47,6 +71,10 @@ export class Logger {
 
     public info(msg: string, labels?: Labels) {
         this.log(LogLevel.INFO, msg, labels);
+    }
+
+    public debug(msg: string, labels?: Labels) {
+        this.log(LogLevel.DEBUG, msg, labels);
     }
 
     public error(msg: string | Error, labels?: Labels) {

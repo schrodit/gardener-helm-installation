@@ -1,5 +1,6 @@
 import {Values} from '../plugins/Helm';
 import {has} from '../utils/has';
+import {trimPrefix} from "../utils/trimPrefix";
 
 export interface DNSValues {
     provider: string,
@@ -44,5 +45,15 @@ export class DNS {
     public getCertBotDnsSolver(): Values {
         return dnsProviderMapping[this.provider](this.values);
     }
-
 }
+
+export const nonRedundantDnsNames = (dnsNames: string[]): string[] => {
+    const wildcardDomains = dnsNames
+        .filter( n => n.startsWith('*'));
+    const wildcardDomainsSet = new Set(wildcardDomains
+        .map(n => trimPrefix(n, '*.')));
+    const isCoveredByWildcardDomain = (domain: string): boolean => {
+        return wildcardDomainsSet.has(domain.split('.').splice(1).join('.'));
+    };
+    return dnsNames.filter(n => !isCoveredByWildcardDomain(n)).concat(wildcardDomains);
+};
