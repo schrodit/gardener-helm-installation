@@ -77,7 +77,7 @@ export interface KubernetesError {
     },
 }
 
-const isKubernetesError = (object: unknown): object is KubernetesError => {
+export const isKubernetesError = (object: unknown): object is KubernetesError => {
     const body = (object as KubernetesError).body;
     return has(body) && [body.code, body.reason, body.message].every(has);
 };

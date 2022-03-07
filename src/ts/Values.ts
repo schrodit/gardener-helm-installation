@@ -11,7 +11,8 @@ import {GardenerCertificates, generateGardenerCerts} from './components/Gardener
 import {DNSValues} from './components/DNS';
 import {randomString} from './utils/randomString';
 import {GardenerExtension} from './components/GardenerExtensions';
-import {GardenerInitConfig} from "./components/GardenerInitConfig";
+import {GardenerInitConfig} from './components/GardenerInitConfig';
+import {Backup, GardenBackup} from './components/Backup';
 
 const log = createLogger('Values');
 
@@ -97,6 +98,8 @@ export interface InputValues {
         email: string,
     }
 
+    backup?: GardenBackup,
+
     apiserver: {
         tls: KubeApiserverCertificates,
         accountKey: KeypairPEM,
@@ -133,6 +136,7 @@ export interface InputValues {
                 services: string,
             },
             blockCIDRs: string[],
+            backup?: Backup,
             settings: Values,
         },
 
@@ -184,8 +188,6 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
     const gardenerHost = addDomainPrefix(ingressHost, input.gardenerDomainPrefix);
     const apiserverHost = addDomainPrefix(ingressHost, input.apiserverDomainPrefix);
     const apiserverUrl = `https://${apiserverHost}`;
-    const internalApiserverHost = '';
-    const internalApiserverUrl = `https://${apiserverHost}`;
     const issuerUrl = `https://${gardenerHost}/oidc`;
 
     const stateValues = await state.get();

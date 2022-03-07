@@ -184,7 +184,7 @@ export class Helm {
     }
 
     private async writeKubeconfigFile(kubeConfig: KubeConfig): Promise<string> {
-        const kcFilename = `${this.hash(kubeConfig.getCurrentCluster()!.server)}.kubeconfig`;
+        const kcFilename = `${this.hash(kubeConfig.exportConfig())}.kubeconfig`;
         const kcFilepath = path.join(this.genDir, kcFilename);
         try {
             await access(kcFilepath);

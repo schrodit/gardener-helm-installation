@@ -1,5 +1,6 @@
 import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
-import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
+import {GardenerNamespace, GeneralValues, required} from '../../../ts/Values';
+import {base64EncodeMap} from '../../../ts/utils/kubernetes';
 
 export class EtcdMainChart extends Chart {
     constructor() {
@@ -13,6 +14,7 @@ export class EtcdMainChart extends Chart {
     public async renderValues(values: GeneralValues): Promise<Values> {
         return {
             name: 'garden-etcd-main',
+            backup: this.backupConfig(values),
             tls: {
                 ca: {
                     crt: values.etcd.tls.ca.cert,
@@ -28,6 +30,32 @@ export class EtcdMainChart extends Chart {
                 },
             },
         };
+    }
+
+    private backupConfig(values: GeneralValues) {
+        if (!values.backup) {
+            return;
+        }
+        required(values, 'backup', 'storageContainer');
+        switch (values.backup.provider) {
+            case 'gcp':
+                required(values.backup, 'credentials', 'serviceaccount.json');
+                return {
+                    storageProvider: 'GCS',
+                    storageContainer: values.backup.storageContainer,
+                    secretData: base64EncodeMap(values.backup.credentials, {jsonIgnoreString: true}),
+                    env: [{
+                        name: 'GOOGLE_APPLICATION_CREDENTIALS',
+                        value: '/root/.gcp/serviceaccount.json',
+                    }],
+                    volumeMounts: [{
+                        name: 'etcd-backup',
+                        mountPath: '/root/.gcp/',
+                    }],
+                };
+            default:
+                throw new Error(`Unsupported storage provider ${values.backup.providerConfig}`);
+        }
     }
 }
 

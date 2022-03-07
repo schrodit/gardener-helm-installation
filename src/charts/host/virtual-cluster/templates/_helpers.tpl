@@ -24,7 +24,7 @@ contexts:
 clusters:
 - cluster:
     certificate-authority-data: {{ .Values.tls.kubeAPIServer.ca.crt | b64enc }}
-    server: https://localhost:443
+    server: https://{{ .Values.serviceName }}:443
   name: garden
 users:
 - name: kube-controller-manager

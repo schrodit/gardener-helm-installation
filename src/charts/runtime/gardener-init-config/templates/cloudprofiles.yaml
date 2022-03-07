@@ -1,0 +1,10 @@
+{{- $global := .Values }}
+{{- range .Values.cloudProfiles }}
+---
+apiVersion: core.gardener.cloud/v1beta1
+kind: CloudProfile
+metadata:
+  name: {{ .name }}
+spec:
+{{ .spec | toYaml | indent 2 }}
+{{- end }}

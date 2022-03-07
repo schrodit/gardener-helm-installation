@@ -10,7 +10,7 @@ export interface ETCDCertificates {
 export const generateETCDCerts = (gardenNamespace: string): ETCDCertificates => {
     const ca = createSelfSignedCA('garden:ca:etcd');
 
-    const etcdHosts = ['localhost']
+    const etcdHosts = ['localhost', 'garden-etcd-main-0', 'garden-etcd-events-0']
         .concat(serviceHosts('garden-etcd-main', gardenNamespace))
         .concat(serviceHosts('garden-etcd-events', gardenNamespace));
 

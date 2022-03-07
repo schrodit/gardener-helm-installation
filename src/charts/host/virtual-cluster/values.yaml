@@ -17,11 +17,15 @@ serviceName: garden-kube-apiserver
 images:
   hyperkube: k8s.gcr.io/hyperkube:v1.18.3
 
-replicas: 3
+
 apiServer:
   hostname: 127.0.0.1
   serviceName: garden-kube-apiserver
   oidcIssuerURL: https://identity.URL
+  replicas: 3
+
+controllerManager:
+  replicas: 1
 
 tls:
   kubeAPIServer:

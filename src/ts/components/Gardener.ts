@@ -115,11 +115,11 @@ export class Gardener extends Task {
                     provider: this.values.dns.provider,
                     credentials: this.values.dns.credentials,
                 }],
-                internalDomains: {
+                internalDomains: [{
                     domain: `internal.${this.values.host}`,
                     provider: this.values.dns.provider,
                     credentials: this.values.dns.credentials,
-                },
+                }],
                 deployment: {
                     virtualGarden: {
                         enabled: true,
