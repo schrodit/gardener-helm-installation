@@ -7,7 +7,7 @@ import {KubeClient} from '../utils/KubeClient';
 import {trimPrefix} from '../utils/trimPrefix';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../Values';
 import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
-import {getKubeConfigForServiceAccount, serviceHosts} from '../utils/kubernetes';
+import {base64EncodeMap, getKubeConfigForServiceAccount, serviceHosts} from '../utils/kubernetes';
 import {deepMergeObject} from '../utils/deepMerge';
 import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
 
@@ -113,13 +113,13 @@ export class Gardener extends Task {
                 defaultDomains: [{
                     domain: `${this.values.gardener.shootDomainPrefix}.${this.values.host}`,
                     provider: this.values.dns.provider,
-                    credentials: this.values.dns.credentials,
+                    credentials: base64EncodeMap(this.values.dns.credentials, {jsonIgnoreString: true}),
                 }],
-                internalDomains: [{
+                internalDomain: {
                     domain: `internal.${this.values.host}`,
                     provider: this.values.dns.provider,
-                    credentials: this.values.dns.credentials,
-                }],
+                    credentials: base64EncodeMap(this.values.dns.credentials, {jsonIgnoreString: true}),
+                },
                 deployment: {
                     virtualGarden: {
                         enabled: true,
@@ -135,6 +135,7 @@ export class Gardener extends Task {
             enabled: true,
             clusterIdentity: this.values.landscapeName,
             kubeconfig: 'dummy', // need to be set for the runtime chart
+            featureGates: this.values.gardener.featureGates,
             image: {
                 tag: GardenerVersion,
             },
@@ -215,8 +216,8 @@ export class Gardener extends Task {
                         'syncPeriod': '60m',
                     },
                 },
-                'featureGates': {},
-                'leaderElection': {
+                featureGates: this.values.gardener.featureGates,
+                leaderElection: {
                     'leaderElect': true,
                     'leaseDuration': '15s',
                     'renewDeadline': '10s',

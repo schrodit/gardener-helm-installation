@@ -13,6 +13,7 @@ export class DnsControllerChart extends Chart {
     public async renderValues(values: GeneralValues): Promise<Values> {
         return {
             identifier: 'gardener-default',
+            fullnameOverride: 'host-dns-controller-manager',
             createCRDs: true,
             configuration: {
                 dnsClass: values.dnsController.class,

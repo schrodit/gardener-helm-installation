@@ -115,6 +115,9 @@ export interface InputValues {
         certs: GardenerCertificates,
         seedCandidateDeterminationStrategy: string,
         shootDomainPrefix: string,
+
+        featureGates?: Record<string, boolean>,
+
         apiserver: {
             replicaCount?: number,
             [key: string]: any,

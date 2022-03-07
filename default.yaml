@@ -7,6 +7,9 @@ gardener:
   shootDomainPrefix: shoot
   seedCandidateDeterminationStrategy: SameRegion
 
+  featureGates:
+    UseDNSRecords: false
+
   soil:
     shootDefaultNetworks:
       pods: 100.96.0.0/11

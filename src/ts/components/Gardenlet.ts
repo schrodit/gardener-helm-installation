@@ -155,6 +155,9 @@ export class Gardenlet extends Task {
     }
 
     private async getBackupConfig(): Promise<SeedBackupConfig | undefined> {
+        if (!this.virtualClient) {
+            return;
+        }
         if (!this.values.backup && !this.values.gardener.soil.backup) {
             return;
         }
@@ -168,7 +171,7 @@ export class Gardenlet extends Task {
                 return true;
             }
             try {
-                await createOrUpdate(this.hostClient, backupSecret, async (): Promise<void> => {
+                await createOrUpdate(this.virtualClient!, backupSecret, async (): Promise<void> => {
                     backupSecret.stringData = backup.credentials;
                 });
                 return true;
@@ -212,6 +215,11 @@ class GardenletChart extends Chart {
                     },
                     config: this.gardenletConfig(values),
                 },
+                deployment: {
+                    virtualGarden: {
+                        enabled: true,
+                    },
+                },
             },
         };
     }
@@ -229,7 +237,17 @@ class GardenletChart extends Chart {
                     namespace: GardenerNamespace,
                 },
             },
+            featureGates: {
+                HVPA: true,
+                ManagedIstio: true,
+                APIServerSNI: true,
+                CachedRuntimeClients: true,
+                ReversedVPN: true,
+                ...values.gardener.featureGates,
+            },
             seedConfig: {
+                apiVersion: 'core.gardener.cloud/v1beta1',
+                kind: 'Seed',
                 metadata: {
                     name: 'host',
                 },
@@ -253,10 +271,6 @@ class GardenletChart extends Chart {
             },
             backup: this.backupConfig,
             dns: {
-                provider: {
-                    type: values.dns.provider,
-                    credentials: values.dns.credentials,
-                },
                 ingressDomain: `host.${values.ingressHost}`,
             },
             settings: values.gardener.soil.settings,
