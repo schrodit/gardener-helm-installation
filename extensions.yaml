@@ -26,7 +26,7 @@ gardener:
 
     provider-equinix:
       enabled: true
-      version: v2.2.0-fix.0
+      version: v2.2.0-fix.1
       controllerRegistration:
         repositoryName: gardener-extension-provider-equinix-metal
         org: schrodit
