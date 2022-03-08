@@ -28,7 +28,7 @@ import {ExportVirtualClusterAdminKubeconfig} from './tasks/ExportApiserverKubeco
 import {Gardener} from './components/Gardener';
 import {GardenerExtensionsTask} from './components/GardenerExtensions';
 import {Gardenlet} from './components/Gardenlet';
-import {GardenerInitConfigTask} from "./components/GardenerInitConfig";
+import {GardenerInitConfigTask} from './components/GardenerInitConfig';
 
 const log = createLogger('Installation');
 

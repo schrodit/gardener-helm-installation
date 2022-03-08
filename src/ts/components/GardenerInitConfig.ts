@@ -2,8 +2,8 @@ import {Chart, ChartPath, Helm, Values} from '../plugins/Helm';
 import {GardenSystemNamespace, GeneralValues} from '../Values';
 import {KubeClient} from '../utils/KubeClient';
 import {createLogger} from '../log/Logger';
+import {Task} from '../flow/Flow';
 import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
-import {Task} from "../flow/Flow";
 
 const log = createLogger('GardenerInitConfig');
 

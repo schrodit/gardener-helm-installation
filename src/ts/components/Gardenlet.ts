@@ -9,12 +9,12 @@ import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
 import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../utils/kubernetes';
 import {KubeClient} from '../utils/KubeClient';
 import {base64Encode} from '../utils/base64Encode';
+import {deepMergeObject} from '../utils/deepMerge';
+import {createSecret} from '../state/KubernetesState';
+import {base64Decode} from '../utils/base64Decode';
 import {GardenerChartsBasePath, GardenerRepoZipUrl, GardenerVersion} from './Gardener';
 import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
-import {Backup, SeedBackupConfig} from "./Backup";
-import {deepMergeObject} from "../utils/deepMerge";
-import {createSecret} from "../state/KubernetesState";
-import {base64Decode} from "../utils/base64Decode";
+import {Backup, SeedBackupConfig} from './Backup';
 
 const log = createLogger('Gardenlet');
 

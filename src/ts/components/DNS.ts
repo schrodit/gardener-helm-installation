@@ -1,6 +1,6 @@
 import {Values} from '../plugins/Helm';
 import {has} from '../utils/has';
-import {trimPrefix} from "../utils/trimPrefix";
+import {trimPrefix} from '../utils/trimPrefix';
 
 export interface DNSValues {
     provider: string,

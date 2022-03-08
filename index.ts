@@ -1,7 +1,7 @@
 #!/bin/env -S node --loader ts-node/esm
+import {has} from '@0cfg/utils-common/lib/has';
 import {Installation} from './src/ts/Installation';
-import {createLogger, logCollector} from './src/ts/log/Logger';
-import {has} from "@0cfg/utils-common/lib/has";
+import {logCollector} from './src/ts/log/Logger';
 const {program} = require('commander');
 
 program.option('--dryRun [dryRun]');
