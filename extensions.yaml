@@ -26,12 +26,14 @@ gardener:
 
     provider-equinix:
       enabled: true
-      version: v2.2.0
+      version: v2.2.0-fix.0
       controllerRegistration:
         repositoryName: gardener-extension-provider-equinix-metal
+        org: schrodit
 
       values:
-        useProjectedTokenMount: false
+        image:
+          repository: ghcr.io/schrodit/gardener/extensions/provider-equinix-metal
 
     networking-cilium:
       enabled: true
