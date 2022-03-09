@@ -4,6 +4,10 @@ dev
 tmp
 lib
 
+*.ts.bak
+
+src/**/index.ts
+
 node_modules
 # jest
 .build-tmp
