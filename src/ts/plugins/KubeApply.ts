@@ -1,4 +1,5 @@
 import {readFile} from 'fs/promises';
+import path from 'path';
 import {KubernetesObject} from '@kubernetes/client-node';
 import * as YAML from 'yaml';
 import axios from 'axios';
@@ -7,6 +8,7 @@ import {KeyValueState} from '../state/State';
 import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
 import {createOrUpdate, enrichKubernetesError} from '../utils/kubernetes';
 import {KubeClient} from '../utils/KubeClient';
+import {internalFile} from '../config';
 
 const log = createLogger('KubeApply');
 
@@ -32,7 +34,8 @@ export class LocalManifest extends Manifest {
     }
 
     public async getManifests(): Promise<KubernetesObject[]> {
-        return this.parseFile(await readFile(this.path, 'utf-8'));
+        const manifestPath = path.isAbsolute(this.path) ? this.path : internalFile(this.path);
+        return this.parseFile(await readFile(manifestPath, 'utf-8'));
     }
 }
 

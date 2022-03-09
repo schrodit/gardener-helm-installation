@@ -9,6 +9,7 @@ import {deepMergeObject} from '../utils/deepMerge';
 import {execAsync} from '../utils/execAsync';
 import {has} from '../utils/has';
 import {DownloadManager} from '../utils/DownloadManager';
+import {internalFile} from '../config';
 
 const log = createLogger('Helm');
 
@@ -63,7 +64,7 @@ export class ChartPath implements ChartContent {
     constructor(public readonly path: string) {}
 
     public async getHelmArgs(): Promise<string> {
-        return this.path;
+        return path.isAbsolute(this.path) ? this.path : internalFile(this.path);
     }
 }
 

@@ -53,6 +53,8 @@
   },
   "files": [
     "lib/**/*",
-    "src/charts/**/*"
+    "src/charts/**/*",
+    "default.yaml",
+    "extensions.yaml"
   ]
 }

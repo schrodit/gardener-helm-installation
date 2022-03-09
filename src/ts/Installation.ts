@@ -29,6 +29,7 @@ import {Gardener} from './components/Gardener';
 import {GardenerExtensionsTask} from './components/GardenerExtensions';
 import {Gardenlet} from './components/Gardenlet';
 import {GardenerInitConfigTask} from './components/GardenerInitConfig';
+import {internalFile} from './config';
 
 const log = createLogger('Installation');
 
@@ -102,7 +103,10 @@ export class Installation {
                 DefaultNamespace,
             );
         }
-        config.valueFiles = [defaultValuesFile, extensionsValuesFile].concat(config.valueFiles);
+        config.valueFiles = [
+            internalFile(defaultValuesFile),
+            internalFile(extensionsValuesFile),
+        ].concat(config.valueFiles);
         const inst = new Installation(kubeClient, config, state, helmState, kubeApplyState);
 
         await inst.install();
