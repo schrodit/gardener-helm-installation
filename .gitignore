@@ -2,6 +2,7 @@
 
 dev
 tmp
+lib
 
 node_modules
 # jest

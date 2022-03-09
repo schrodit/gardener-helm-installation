@@ -1,5 +1,5 @@
-import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
-import {GardenSystemNamespace, GeneralValues} from '../../../ts/Values';
+import {Chart, ChartPath, Values} from '../../plugins/Helm';
+import {GardenSystemNamespace, GeneralValues} from '../../Values';
 
 export class DnsControllerChart extends Chart {
     constructor() {

@@ -1,7 +1,7 @@
-import {DNS, nonRedundantDnsNames} from '../../../ts/components/DNS';
-import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
-import {base64EncodeMap} from '../../../ts/utils/kubernetes';
-import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../../ts/Values';
+import {DNS, nonRedundantDnsNames} from '../DNS';
+import {Chart, ChartPath, Values} from '../../plugins/Helm';
+import {base64EncodeMap} from '../../utils/kubernetes';
+import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
 
 export class HostConfigurationChart extends Chart {
     constructor() {

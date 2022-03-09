@@ -1,0 +1,20 @@
+name: Default
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+     - master
+
+jobs:
+  default:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: yarn
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn build

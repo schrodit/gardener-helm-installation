@@ -132,7 +132,7 @@ export const getKubeConfigForServiceAccount = async (client: KubeClient, namespa
     await retryWithBackoff(async (): Promise<boolean> => {
         try {
             Object.assign(sa, (await client.read(sa)).body);
-            if (!has(sa.secrets) || sa.secrets.length === 0) {
+            if (!sa.secrets || sa.secrets.length === 0) {
                 return false;
             }
             return true;
@@ -161,7 +161,7 @@ export const getKubeConfigForServiceAccount = async (client: KubeClient, namespa
     });
 
     const token = secret.data?.token;
-    if (!has(token)) {
+    if (!token) {
         throw new Error(`service account secret ${secret.metadata?.name} does not contain a token`);
     }
 

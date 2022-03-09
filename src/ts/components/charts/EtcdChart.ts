@@ -1,6 +1,6 @@
-import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
-import {GardenerNamespace, GeneralValues, required} from '../../../ts/Values';
-import {base64EncodeMap} from '../../../ts/utils/kubernetes';
+import {Chart, ChartPath, Values} from '../../plugins/Helm';
+import {GardenerNamespace, GeneralValues, required} from '../../Values';
+import {base64EncodeMap} from '../../utils/kubernetes';
 
 export class EtcdMainChart extends Chart {
     constructor() {

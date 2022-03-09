@@ -1,5 +1,5 @@
-import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
-import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
+import {Chart, ChartPath, Values} from '../../plugins/Helm';
+import {GardenerNamespace, GeneralValues} from '../../Values';
 
 export class VirtualClusterChart extends Chart {
     constructor() {

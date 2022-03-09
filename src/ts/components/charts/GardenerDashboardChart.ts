@@ -1,7 +1,7 @@
-import {Chart, ChartPath, Values} from '../../../ts/plugins/Helm';
-import {GardenerNamespace, GeneralValues} from '../../../ts/Values';
-import {waitUntilVirtualClusterIsReady} from '../../../ts/components/VirtualCluster';
-import {createLogger} from '../../../ts/log/Logger';
+import {Chart, ChartPath, Values} from '../../plugins/Helm';
+import {GardenerNamespace, GeneralValues} from '../../Values';
+import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
+import {createLogger} from '../../log/Logger';
 
 const log = createLogger('GardenerDashboard');
 

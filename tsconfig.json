@@ -1,9 +1,16 @@
 {
   "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "lib"
+  ],
   "compilerOptions": {
+    "rootDir": "src/ts",
     "target": "ES2020",
     "module": "commonjs",
     "moduleResolution": "node",
+    "outDir": "./lib",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
