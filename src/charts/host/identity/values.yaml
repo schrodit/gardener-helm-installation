@@ -38,6 +38,10 @@ dashboardOrigins:
 dashboardClientSecret: sHq4vLoiQcIWbO3h
 kubectlClientSecret: if6ji0dTFE4rQfj8
 
+additionalVolumes: ~
+additionalVolumeMounts: ~
+additionalSecrets: ~
+
 additionalStaticClients: ~
 # - name: additional identity example client
 #   id: exampleClient

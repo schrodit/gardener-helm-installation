@@ -45,6 +45,9 @@ spec:
           secret:
             secretName: identity-kubeconfig
         {{- end }}
+        {{- if .Values.additionalVolumes }}
+{{ .Values.additionalVolumes | toYaml | indent 8 }}
+        {{- end }}
       {{- if .Values.kubeconfig }}
       automountServiceAccountToken: false
       {{- else }}
@@ -84,4 +87,7 @@ spec:
           {{- if .Values.kubeconfig }}
           - mountPath: /etc/kubeconfig
             name: kubeconfig
+          {{- end }}
+          {{- if .Values.additionalVolumeMounts }}
+{{ .Values.additionalVolumeMounts | toYaml | indent 10 }}
           {{- end }}
