@@ -11,7 +11,7 @@
     "lintFix": "eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet --fix",
     "lint": "eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet",
     "test": "jest --passWithNoTests",
-    "build": "tsc",
+    "build": "cti create ./src/ts && tsc",
     "prepack": "yarn build"
   },
   "dependencies": {
@@ -42,6 +42,7 @@
     "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
+    "create-ts-index": "^1.14.0",
     "eslint": "^8.10.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-unused-imports": "^2.0.0",

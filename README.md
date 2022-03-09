@@ -144,3 +144,35 @@ npx ts-node index.ts
 -f [./path/to/values]
 --level=[debug|info]
 ```
+
+### Use as module
+The gardener installer is published as npm nodule and can be used within other node scripts
+
+```
+npm i gardener-installation
+```
+
+```
+yarn add gardener-installation
+```
+
+```typescript
+import {Installation, InputValues} from 'gardener-installation/lib';
+
+
+(async () => {
+
+  try {
+
+    const values: InputValues = {}
+
+    await Installation.run({
+      values,
+      // dryRun: false,
+    });
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
+})()
+```

@@ -12,7 +12,7 @@ import {EtcdEventsChart, EtcdMainChart} from './components/charts/EtcdChart';
 import {VirtualClusterChart} from './components/charts/VirtualClusterChart';
 import {GardenerDashboardChart} from './components/charts/GardenerDashboardChart';
 import {Helm, InstalledRelease} from './plugins/Helm';
-import {DefaultNamespace, emptyStateFile, generateGardenerInstallationValues, StateValues} from './Values';
+import {DefaultNamespace, emptyStateFile, generateGardenerInstallationValues, StateValues, InputValues} from './Values';
 import {KeyValueState, State} from './state/State';
 import {LocalKeyValueState, LocalState} from './state/LocalState';
 import {deepMergeObject} from './utils/deepMerge';
@@ -34,9 +34,10 @@ import {internalFile} from './config';
 const log = createLogger('Installation');
 
 export interface InstallationConfig {
-    dryRun: boolean;
-    defaultNamespace: string;
-    valueFiles: string[];
+    dryRun?: boolean;
+    defaultNamespace?: string;
+    valueFiles?: string[];
+    values?: InputValues;
 }
 
 const defaultValuesFile = './default.yaml';
@@ -52,8 +53,10 @@ export class Installation {
     private readonly kubeApply: KubeApply;
 
     private constructor(
+        private inputValues: InputValues,
         private readonly kubeClient: KubeClient,
-        private readonly config: InstallationConfig,
+        private readonly dryRun: boolean,
+        private readonly defaultNamespace: string,
         private readonly state: State<StateValues>,
         helmState: KeyValueState<InstalledRelease>,
         kubeApplyState: KeyValueState<ManagedResources[]>,
@@ -61,14 +64,14 @@ export class Installation {
         this.helm = new Helm(
             genDir,
             helmState,
-            config.dryRun,
-            config.defaultNamespace,
+            this.dryRun,
+            this.defaultNamespace,
         );
         this.kubeApply = new KubeApply(
             kubeClient,
             kubeApplyState,
-            config.dryRun,
-            config.defaultNamespace,
+            this.dryRun,
+            this.defaultNamespace,
         );
     }
 
@@ -103,18 +106,36 @@ export class Installation {
                 DefaultNamespace,
             );
         }
+
+        const valueFiles = [
+            internalFile(defaultValuesFile),
+            internalFile(extensionsValuesFile),
+        ].concat(config.valueFiles ?? []);
+        const values = deepMergeObject(
+            config.values ?? {},
+            await this.readValueFiles(valueFiles),
+        );
+
         config.valueFiles = [
             internalFile(defaultValuesFile),
             internalFile(extensionsValuesFile),
-        ].concat(config.valueFiles);
-        const inst = new Installation(kubeClient, config, state, helmState, kubeApplyState);
+        ].concat(config.valueFiles ?? []);
+
+        const inst = new Installation(
+            values,
+            kubeClient,
+            config.dryRun ?? false,
+            config.defaultNamespace ?? DefaultNamespace,
+            state,
+            helmState,
+            kubeApplyState);
 
         await inst.install();
         return inst;
     }
 
     private async install(): Promise<void> {
-        const values = await generateGardenerInstallationValues(this.state, await this.readValueFiles());
+        const values = await generateGardenerInstallationValues(this.state, this.inputValues);
         await this.writeToGen('values.yaml', yaml.stringify(values));
 
         const helmTaskFactory = new HelmTaskFactory(values, this.helm);
@@ -135,37 +156,21 @@ export class Installation {
                 this.kubeClient,
                 values,
                 genDir,
-                this.config.dryRun,
+                this.dryRun,
             ),
             new Gardener(
                 this.kubeClient,
                 this.helm,
                 values,
-                this.config.dryRun,
+                this.dryRun,
             ),
-            new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.config.dryRun),
-            helmTaskFactory.createTask(new GardenerDashboardChart(this.config.dryRun)),
-            new GardenerInitConfigTask(this.helm, values, this.config.dryRun),
-            new Gardenlet(this.kubeClient, this.helm, values, this.config.dryRun),
+            new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.dryRun),
+            helmTaskFactory.createTask(new GardenerDashboardChart(this.dryRun)),
+            new GardenerInitConfigTask(this.helm, values, this.dryRun),
+            new Gardenlet(this.kubeClient, this.helm, values, this.dryRun),
         );
 
         await flow.execute();
-    }
-
-    private async readValueFiles(): Promise<any> {
-        const allValues = await Promise.all(
-            this.config.valueFiles.map(path => this.readValues(path))
-        );
-        let val = {};
-        allValues.forEach( v => {
-            val = deepMergeObject(val, v);
-        });
-        return val;
-    }
-
-    private async readValues(path: string): Promise<any> {
-        log.info(`Read values from ${path}`);
-        return yaml.parse(await readFile(path, 'utf-8'));
     }
 
     private async writeToGen(filename: string, content: string): Promise<void> {
@@ -176,6 +181,22 @@ export class Installation {
         }
 
         await writeFile(path.join(genDir, filename), content);
+    }
+
+    private static async readValueFiles(valueFiles: string[]): Promise<any> {
+        const allValues = await Promise.all(
+            valueFiles.map(path => this.readValues(path))
+        );
+        let val = {};
+        allValues.forEach( v => {
+            val = deepMergeObject(val, v);
+        });
+        return val;
+    }
+
+    private static async readValues(path: string): Promise<any> {
+        log.info(`Read values from ${path}`);
+        return yaml.parse(await readFile(path, 'utf-8'));
     }
 
 }

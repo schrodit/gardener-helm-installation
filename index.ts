@@ -1,8 +1,8 @@
 #!/bin/env -S node --loader ts-node/esm
 import {has} from '@0cfg/utils-common/lib/has';
+import {program} from 'commander';
 import {Installation} from './src/ts/Installation';
-import {logCollector} from './src/ts/log/Logger';
-const {program} = require('commander');
+import {createLogger, logCollector} from './src/ts/log/Logger';
 
 program.option('--dryRun [dryRun]');
 program.option('--level [logLevel]');
@@ -22,11 +22,16 @@ void (async function () {
     logCollector.setFormat(args['log-format']);
   }
 
-  const inst = await Installation.run({
-    dryRun,
-    defaultNamespace: 'default',
-    valueFiles: args.values,
-  });
+  try {
+    await Installation.run({
+      dryRun,
+      defaultNamespace: 'default',
+      valueFiles: args.values,
+    });
+  } catch (error) {
+      createLogger('').error(error);
+      process.exit(1);
+  }
 
 })();
 
