@@ -5,6 +5,7 @@ Simple Gardener installation only using helm charts
 - [Install Gardener](#install-gardener)
   - [Values/Configuration](#values) 
 - [Command Options](#command-options)
+- [Use as module](#use-as-module)
 
 ## Prerequisites:
 1. Install node version > 16.0.0
