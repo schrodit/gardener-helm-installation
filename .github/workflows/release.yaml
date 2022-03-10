@@ -1,0 +1,30 @@
+name: Release and NPM Publish
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: git config --global user.name 'schrodit'
+      - run: git config --global user.email 'noreply@timschrodi.tech'
+      - run: npm version minor -m "[RELEASE] %s"
+      - run: git push --tags
+      - run: yarn
+      - run: yarn lint
+      - run: yarn test
+      - run: yarn build
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+      - uses: ncipollo/release-action@v1
+        with:
+          #artifacts: "release.tar.gz,foo/*.txt"
+          token: ${{ secrets.GH_TOKEN }}
