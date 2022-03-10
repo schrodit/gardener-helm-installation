@@ -28,7 +28,7 @@ void (async function () {
       defaultNamespace: 'default',
       valueFiles: args.values,
     });
-  } catch (error) {
+  } catch (error: any) {
       createLogger('').error(error);
       process.exit(1);
   }

@@ -134,7 +134,11 @@ gardener-dashboard:
   See the [Extension values](./extensions.yaml) for all default extensions.
   Others can be added via the values.yaml.
 
+#### Known issues
 
+- If the gardener dashboard is unable to correctly read the cloudprofile 
+  (you are unable open the create-shoot dialog, or all versions are shown as outaded),
+  then just add your host seed to the seed selector of your cloudprofile.
 
 ### Command Options
 
