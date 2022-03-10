@@ -13,10 +13,14 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 16
+      - run: sudo apt-get update && sudo apt-get install jq
       - run: git config --global user.name 'schrodit'
       - run: git config --global user.email 'noreply@timschrodi.tech'
       - run: npm version minor -m "[RELEASE] %s"
       - run: git push --tags
+      - name: version
+        run: echo "::set-output name=version::$(cat ./package.json | jq -r .version)"
+        id: version
       - run: yarn
       - run: yarn lint
       - run: yarn test
@@ -28,3 +32,4 @@ jobs:
         with:
           #artifacts: "release.tar.gz,foo/*.txt"
           token: ${{ secrets.GH_TOKEN }}
+          tag: ${{ steps.version.outputs.version }}
