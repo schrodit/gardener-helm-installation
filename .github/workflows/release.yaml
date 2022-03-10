@@ -17,7 +17,7 @@ jobs:
       - run: git config --global user.name 'schrodit'
       - run: git config --global user.email 'noreply@timschrodi.tech'
       - run: npm version minor -m "[RELEASE] %s"
-      - run: git push --tags
+      - run: git push --follow-tags
       - name: version
         run: echo "::set-output name=version::$(cat ./package.json | jq -r .version)"
         id: version

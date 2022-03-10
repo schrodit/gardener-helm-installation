@@ -9,7 +9,7 @@ Simple Gardener installation only using helm charts
 
 ## Prerequisites:
 1. Install node version > 16.0.0
-2. Install Helm v2 https://helm.sh/docs/intro/install/
+2. Install Helm v3 https://helm.sh/docs/intro/install/
 3. Install yarn `npm i -g yarn`
 4. Install the node dependencies `yarn install`
 
