@@ -9,14 +9,24 @@ import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../Values
 import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
 import {base64EncodeMap, getKubeConfigForServiceAccount, serviceHosts} from '../utils/kubernetes';
 import {deepMergeObject} from '../utils/deepMerge';
+import {Versions} from '../utils/Versions';
 import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
+import {KeyValueState} from "../state";
 
 const log = createLogger('Gardener');
 
-export const GardenerVersion = 'v1.41.1';
+export const SupportedVersions = new Versions([
+    'v1.41.1',
+    'v1.41.2',
+    'v1.41.3',
+]);
+
+export const GardenerVersion = SupportedVersions.getLatest();
 export const GardenerRepoZipUrl = `https://github.com/gardener/gardener/archive/refs/tags/${GardenerVersion}.zip`;
 export const GardenerChartsBasePath = `gardener-${trimPrefix(GardenerVersion, 'v')}/charts/gardener`;
 export const GardenerChartBasePath = path.join(GardenerChartsBasePath, 'controlplane/charts');
+
+const LastVersionStateKey = 'gardenerVersion';
 
 export interface GardenerCertificates {
     ca: CA,
@@ -76,12 +86,16 @@ export class Gardener extends Task {
         private readonly hostClient: KubeClient,
         private readonly helm: Helm,
         private readonly values: GeneralValues,
+        private readonly state: KeyValueState<string>,
         private readonly dryRun: boolean,
     ) {
         super('Gardener');
     }
 
     public async do(): Promise<void> {
+        const currentVersion = await this.state.get(LastVersionStateKey) ?? 'v1.41.1';
+
+
         log.info(`Installing Gardener version ${GardenerVersion}`);
         if (!this.dryRun) {
             this.virtualClient = await waitUntilVirtualClusterIsReady(log, this.values);

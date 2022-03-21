@@ -30,6 +30,7 @@ import {GardenerExtensionsTask} from './components/GardenerExtensions';
 import {Gardenlet} from './components/Gardenlet';
 import {GardenerInitConfigTask} from './components/GardenerInitConfig';
 import {internalFile} from './config';
+import {NamespacedKeyValueState} from "./state/NamespacedKeyValueState";
 
 const log = createLogger('Installation');
 
@@ -58,6 +59,7 @@ export class Installation {
         private readonly dryRun: boolean,
         private readonly defaultNamespace: string,
         private readonly state: State<StateValues>,
+        private readonly genericState: KeyValueState<any>,
         helmState: KeyValueState<InstalledRelease>,
         kubeApplyState: KeyValueState<ManagedResources[]>,
     ) {
@@ -88,6 +90,15 @@ export class Installation {
                 'state',
                 DefaultNamespace,
                 emptyStateFile,
+            );
+        }
+
+        let genericState: KeyValueState<any> = new LocalKeyValueState<any>(helmStateFile);
+        if (!config.dryRun) {
+            genericState = new KubernetesKeyValueState<any>(
+                kubeClient,
+                'kv-state',
+                DefaultNamespace,
             );
         }
         let helmState: KeyValueState<InstalledRelease> = new LocalKeyValueState<InstalledRelease>(helmStateFile);
@@ -127,6 +138,7 @@ export class Installation {
             config.dryRun ?? false,
             config.defaultNamespace ?? DefaultNamespace,
             state,
+            genericState,
             helmState,
             kubeApplyState);
 
@@ -162,6 +174,7 @@ export class Installation {
                 this.kubeClient,
                 this.helm,
                 values,
+                new NamespacedKeyValueState(this.genericState, 'gardener'),
                 this.dryRun,
             ),
             new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.dryRun),
