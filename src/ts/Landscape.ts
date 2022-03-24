@@ -25,16 +25,16 @@ import {Flow} from './flow/Flow';
 import {HelmTaskFactory} from './flow/HelmTask';
 import {KubeApplyFactory} from './flow/KubeApplyTask';
 import {ExportVirtualClusterAdminKubeconfig} from './tasks/ExportApiserverKubeconfig';
-import {Gardener} from './components/Gardener';
+import {Gardener} from './components/gardener/Gardener';
 import {GardenerExtensionsTask} from './components/GardenerExtensions';
-import {Gardenlet} from './components/Gardenlet';
+import {Gardenlet} from './components/gardener/Gardenlet';
 import {GardenerInitConfigTask} from './components/GardenerInitConfig';
 import {internalFile} from './config';
-import {NamespacedKeyValueState} from "./state/NamespacedKeyValueState";
+import {NamespacedKeyValueState} from './state/NamespacedKeyValueState';
 
 const log = createLogger('Installation');
 
-export interface InstallationConfig {
+export interface LandscapeInstallationConfig {
     dryRun?: boolean;
     defaultNamespace?: string;
     valueFiles?: string[];
@@ -48,7 +48,7 @@ const stateFile = './state/state.yaml';
 const helmStateFile = './state/helm-state.yaml';
 const kubeApplyStateFile = './state/kube-apply-state.yaml';
 
-export class Installation {
+export class Landscape {
 
     private readonly helm: Helm;
     private readonly kubeApply: KubeApply;
@@ -77,7 +77,7 @@ export class Installation {
         );
     }
 
-    public static async run(config: InstallationConfig): Promise<Installation> {
+    public static async deploy(config: LandscapeInstallationConfig): Promise<Landscape> {
         const kc = new KubeConfig();
         kc.loadFromDefault();
         const kubeClient = new DefaultKubeClient(kc);
@@ -132,7 +132,7 @@ export class Installation {
             internalFile(extensionsValuesFile),
         ].concat(config.valueFiles ?? []);
 
-        const inst = new Installation(
+        const inst = new Landscape(
             values,
             kubeClient,
             config.dryRun ?? false,
@@ -170,20 +170,31 @@ export class Installation {
                 genDir,
                 this.dryRun,
             ),
-            new Gardener(
+            ...(await Gardener(
                 this.kubeClient,
                 this.helm,
                 values,
                 new NamespacedKeyValueState(this.genericState, 'gardener'),
                 this.dryRun,
-            ),
+            )),
             new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.dryRun),
             helmTaskFactory.createTask(new GardenerDashboardChart(this.dryRun)),
             new GardenerInitConfigTask(this.helm, values, this.dryRun),
-            new Gardenlet(this.kubeClient, this.helm, values, this.dryRun),
+            ...(await Gardenlet(
+                this.kubeClient,
+                this.helm,
+                values,
+                new NamespacedKeyValueState(this.genericState, 'gardenlet'),
+                this.dryRun)),
         );
 
         await flow.execute();
+
+        if (this.dryRun) {
+            let msg = 'Flow\n';
+            flow.taskNames().forEach(t => msg += `- ${t}\n`);
+            log.info(msg);
+        }
     }
 
     private async writeToGen(filename: string, content: string): Promise<void> {

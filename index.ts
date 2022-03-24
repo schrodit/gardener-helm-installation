@@ -1,7 +1,7 @@
 #!/bin/env -S node --loader ts-node/esm
 import {has} from '@0cfg/utils-common/lib/has';
 import {program} from 'commander';
-import {Installation} from './src/ts/Installation';
+import {Landscape} from './src/ts/Landscape';
 import {createLogger, logCollector} from './src/ts/log/Logger';
 
 program.option('--dryRun [dryRun]');
@@ -23,7 +23,7 @@ void (async function () {
   }
 
   try {
-    await Installation.run({
+    await Landscape.deploy({
       dryRun,
       defaultNamespace: 'default',
       valueFiles: args.values,

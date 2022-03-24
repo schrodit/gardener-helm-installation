@@ -7,7 +7,7 @@ import {ETCDCertificates, generateETCDCerts} from './components/etcd';
 import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates} from './components/VirtualCluster';
 import {deepMergeObject} from './utils/deepMerge';
 import {createLogger} from './log/Logger';
-import {GardenerCertificates, generateGardenerCerts} from './components/Gardener';
+import {GardenerCertificates, generateGardenerCerts} from './components/gardener/Gardener';
 import {DNSValues} from './components/DNS';
 import {randomString} from './utils/randomString';
 import {GardenerExtension} from './components/GardenerExtensions';
@@ -112,6 +112,8 @@ export interface InputValues {
     },
 
     gardener: {
+        version?: string,
+        autoPatchUpdate?: boolean,
         certs: GardenerCertificates,
         seedCandidateDeterminationStrategy: string,
         shootDomainPrefix: string,

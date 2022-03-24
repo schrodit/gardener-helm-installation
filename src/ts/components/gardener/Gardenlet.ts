@@ -1,28 +1,48 @@
 import path from 'path';
 import {KubeConfig, KubernetesListObject, V1Secret} from '@kubernetes/client-node';
-import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../Values';
-import {createLogger} from '../log/Logger';
-import {Chart, Helm, RemoteChartFromZip, Values} from '../plugins/Helm';
-import {Task} from '../flow/Flow';
-import {CharacterSet, randomString} from '../utils/randomString';
-import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
-import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../utils/kubernetes';
-import {KubeClient} from '../utils/KubeClient';
-import {base64Encode} from '../utils/base64Encode';
-import {deepMergeObject} from '../utils/deepMerge';
-import {createSecret} from '../state/KubernetesState';
-import {base64Decode} from '../utils/base64Decode';
-import {GardenerChartsBasePath, GardenerRepoZipUrl, GardenerVersion} from './Gardener';
-import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
-import {Backup, SeedBackupConfig} from './Backup';
+import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../../Values';
+import {createLogger} from '../../log/Logger';
+import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
+import {CharacterSet, randomString} from '../../utils/randomString';
+import {retryWithBackoff} from '../../utils/exponentialBackoffRetry';
+import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../../utils/kubernetes';
+import {KubeClient} from '../../utils/KubeClient';
+import {base64Encode} from '../../utils/base64Encode';
+import {deepMergeObject} from '../../utils/deepMerge';
+import {createSecret} from '../../state/KubernetesState';
+import {base64Decode} from '../../utils/base64Decode';
+import {InstallationManager, InstallationTask} from '../../flow/InstallationManager';
+import {DefaultTask} from '../../flow/BaseComponent';
+import {KeyValueState} from '../../state/State';
+import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
+import {Backup, SeedBackupConfig} from '../Backup';
+import {GardenerComponent, SupportedVersions} from '../gardener/Gardener';
+import {GardenerChartsBasePath, GardenerRepoZipUrl} from './Gardener';
+import {Task} from "../../flow/Flow";
 
 const log = createLogger('Gardenlet');
+
+export const Gardenlet = async (
+    hostClient: KubeClient,
+    helm: Helm,
+    values: GeneralValues,
+    state: KeyValueState<string>,
+    dryRun: boolean,
+): Promise<Task[]> => {
+    const comp = new GardenerComponent(values, state);
+    comp.setDefaultTask(new GardenletTask(
+        hostClient, helm, values, dryRun,
+    ));
+    comp.addVersions(...SupportedVersions);
+
+    return await new InstallationManager().getTasks(comp);
+};
 
 /**
  * Deploys the host gardenlet.
  * Based on https://github.com/gardener/gardener/blob/master/docs/deployment/deploy_gardenlet_manually.md
  */
-export class Gardenlet extends Task {
+export class GardenletTask extends DefaultTask {
 
     private virtualClient?: KubeClient;
 
@@ -35,6 +55,15 @@ export class Gardenlet extends Task {
         super('Gardenlet');
     }
 
+    public copy(): GardenletTask {
+        return new GardenletTask(
+            this.hostClient,
+            this.helm,
+            this.values,
+            this.dryRun,
+        );
+    }
+
     public async do(): Promise<void> {
         log.info('Installing Gardenlet');
 
@@ -44,6 +73,7 @@ export class Gardenlet extends Task {
 
         const gardenletKubeConfig = await this.initialGardenletKubeconfig(await this.createBoostrapSecret());
         const gardenletChart = new GardenletChart(
+            this.version.raw,
             gardenletKubeConfig.exportConfig(),
             await this.getBackupConfig());
         await this.helm.createOrUpdate(await gardenletChart.getRelease(this.values));
@@ -56,6 +86,9 @@ export class Gardenlet extends Task {
      * Returns the authentication token to be used for the kubeconfig.
      */
     private async createBoostrapSecret(): Promise<string> {
+        if (this.dryRun) {
+            return 'dummy-bootstrap-secret';
+        }
         const token = await this.readTokenFromBootstrapSecret();
         if (token) {
             log.info('Gardenlet bootstrap secret does already exist. Use existing..');
@@ -135,6 +168,9 @@ export class Gardenlet extends Task {
     }
 
     private initialGardenletKubeconfig(token: string): KubeConfig {
+        if (this.dryRun) {
+            return new KubeConfig();
+        }
         const kc = new KubeConfig();
         const cluster = this.virtualClient?.getKubeConfig().getCurrentCluster();
         if (!cluster) {
@@ -196,12 +232,13 @@ export class Gardenlet extends Task {
 
 class GardenletChart extends Chart {
     constructor(
+        private readonly version: string,
         private readonly gardenletKubeconfig: string,
         private readonly backupConfig?: SeedBackupConfig,
     ) {
         super(
             'gardenlet',
-            new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartsBasePath, 'gardenlet')),
+            new RemoteChartFromZip(GardenerRepoZipUrl(version), path.join(GardenerChartsBasePath(version), 'gardenlet')),
             GardenerNamespace,
         );
     }
@@ -211,7 +248,7 @@ class GardenletChart extends Chart {
             global: {
                 gardenlet: {
                     image: {
-                        tag: GardenerVersion,
+                        tag: this.version,
                     },
                     config: this.gardenletConfig(values),
                 },

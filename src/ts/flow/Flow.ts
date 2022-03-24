@@ -1,10 +1,17 @@
+import {EventEmitter} from 'events';
 import {createLogger} from '../log/Logger';
 
 const log = createLogger('Flow');
 
-export abstract class Task {
+export enum TaskEvents {
+    COMPLETED = 'completed',
+}
 
-    constructor(public readonly name: string) {}
+export abstract class Task extends EventEmitter {
+
+    constructor(public name: string) {
+        super();
+    }
 
     public abstract do(): Promise<void>;
 }
@@ -31,7 +38,12 @@ export class Flow {
         // todo: add dag execution.
         for (const task of this.tasks) {
             await this.executeTask(task);
+            task.emit(TaskEvents.COMPLETED);
         }
+    }
+
+    public taskNames(): string[] {
+        return this.tasks.map(t => t.name);
     }
 
     private async executeTask(task: Task): Promise<void> {

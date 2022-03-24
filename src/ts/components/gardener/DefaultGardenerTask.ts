@@ -1,39 +1,16 @@
 import path from 'path';
 import IPCIDR from 'ip-cidr';
-import {Task} from '../flow/Flow';
-import {createLogger} from '../log/Logger';
-import {Chart, Helm, RemoteChartFromZip, Values} from '../plugins/Helm';
-import {KubeClient} from '../utils/KubeClient';
-import {trimPrefix} from '../utils/trimPrefix';
-import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../Values';
-import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
-import {base64EncodeMap, getKubeConfigForServiceAccount, serviceHosts} from '../utils/kubernetes';
-import {deepMergeObject} from '../utils/deepMerge';
-import {Versions} from '../utils/Versions';
-import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
-import {KeyValueState} from "../state";
+import {DefaultTask} from '../../flow/BaseComponent';
+import {KubeClient} from '../../utils/KubeClient';
+import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
+import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
+import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
+import {getKubeConfigForServiceAccount, base64EncodeMap} from '../../utils/kubernetes';
+import {createLogger} from '../../log';
+import {deepMergeObject} from '../../utils/deepMerge';
+import {GardenerChartBasePath, GardenerRepoZipUrl} from './Gardener';
 
 const log = createLogger('Gardener');
-
-export const SupportedVersions = new Versions([
-    'v1.41.1',
-    'v1.41.2',
-    'v1.41.3',
-]);
-
-export const GardenerVersion = SupportedVersions.getLatest();
-export const GardenerRepoZipUrl = `https://github.com/gardener/gardener/archive/refs/tags/${GardenerVersion}.zip`;
-export const GardenerChartsBasePath = `gardener-${trimPrefix(GardenerVersion, 'v')}/charts/gardener`;
-export const GardenerChartBasePath = path.join(GardenerChartsBasePath, 'controlplane/charts');
-
-const LastVersionStateKey = 'gardenerVersion';
-
-export interface GardenerCertificates {
-    ca: CA,
-    apiserver: TLS,
-    controllerManager: TLS,
-    admissionController: TLS,
-}
 
 const defaultResources = {
     'apiserver': {
@@ -78,7 +55,7 @@ const defaultResources = {
     },
 };
 
-export class Gardener extends Task {
+export class DefaultGardenerTask extends DefaultTask {
 
     private virtualClient?: KubeClient;
 
@@ -86,17 +63,22 @@ export class Gardener extends Task {
         private readonly hostClient: KubeClient,
         private readonly helm: Helm,
         private readonly values: GeneralValues,
-        private readonly state: KeyValueState<string>,
         private readonly dryRun: boolean,
     ) {
         super('Gardener');
     }
 
+    public copy(): DefaultGardenerTask {
+        return new DefaultGardenerTask(
+            this.hostClient,
+            this.helm,
+            this.values,
+            this.dryRun,
+        );
+    }
+
     public async do(): Promise<void> {
-        const currentVersion = await this.state.get(LastVersionStateKey) ?? 'v1.41.1';
-
-
-        log.info(`Installing Gardener version ${GardenerVersion}`);
+        log.info(`Installing Gardener version ${this.version.raw}`);
         if (!this.dryRun) {
             this.virtualClient = await waitUntilVirtualClusterIsReady(log, this.values);
         }
@@ -105,7 +87,7 @@ export class Gardener extends Task {
 
         const gardenerValues = this.getValues();
 
-        const applicationHelmChart = new ApplicationChart(gardenerValues);
+        const applicationHelmChart = new ApplicationChart(this.version.raw, gardenerValues);
         await this.helm.createOrUpdate(await applicationHelmChart.getRelease(this.values), this.virtualClient?.getKubeConfig());
 
         gardenerValues.global.apiserver.kubeconfig = await this.getKubeConfigForServiceAccount('gardener-apiserver');
@@ -113,7 +95,7 @@ export class Gardener extends Task {
         gardenerValues.global.scheduler.kubeconfig = await this.getKubeConfigForServiceAccount('gardener-scheduler');
         gardenerValues.global.admission.kubeconfig = await this.getKubeConfigForServiceAccount('gardener-admission-controller');
 
-        const runtimeHelmChart = new RuntimeChart(gardenerValues);
+        const runtimeHelmChart = new RuntimeChart(this.version.raw, gardenerValues);
         await this.helm.createOrUpdate(await runtimeHelmChart.getRelease(this.values));
     }
 
@@ -151,7 +133,7 @@ export class Gardener extends Task {
             kubeconfig: 'dummy', // need to be set for the runtime chart
             featureGates: this.values.gardener.featureGates,
             image: {
-                tag: GardenerVersion,
+                tag: this.version.raw,
             },
             caBundle: this.values.gardener.certs.ca.cert,
             tls: {
@@ -181,7 +163,7 @@ export class Gardener extends Task {
             enabled: true,
             kubeconfig: 'dummy',
             image: {
-                tag: GardenerVersion,
+                tag: this.version.raw,
             },
             resources: defaultResources.controller,
             replicaCount: 1,
@@ -262,7 +244,7 @@ export class Gardener extends Task {
             enabled: true,
             kubeconfig: 'dummy',
             image: {
-                tag: GardenerVersion,
+                tag: this.version.raw,
             },
             resources: defaultResources.admission,
             replicaCount: 1,
@@ -294,7 +276,7 @@ export class Gardener extends Task {
             enabled: true,
             kubeconfig: 'dummy',
             image: {
-                tag: GardenerVersion,
+                tag: this.version.raw,
             },
             resources: defaultResources.scheduler,
             replicaCount: 1,
@@ -318,13 +300,14 @@ export class Gardener extends Task {
         const kc = await getKubeConfigForServiceAccount(this.virtualClient, GardenerNamespace, name, log);
         return kc.exportConfig();
     }
+
 }
 
 class RuntimeChart extends Chart {
-    constructor(private readonly values: Values) {
+    constructor(version: string, private readonly values: Values) {
         super(
             'gardener-runtime',
-            new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartBasePath, 'runtime')),
+            new RemoteChartFromZip(GardenerRepoZipUrl(version), path.join(GardenerChartBasePath(version), 'runtime')),
             GardenerNamespace,
         );
     }
@@ -335,10 +318,10 @@ class RuntimeChart extends Chart {
 }
 
 class ApplicationChart extends Chart {
-    constructor(private readonly values: Values) {
+    constructor(version: string, private readonly values: Values) {
         super(
             'gardener-application',
-            new RemoteChartFromZip(GardenerRepoZipUrl, path.join(GardenerChartBasePath, 'application')),
+            new RemoteChartFromZip(GardenerRepoZipUrl(version), path.join(GardenerChartBasePath(version), 'application')),
             GardenSystemNamespace,
         );
     }
@@ -348,31 +331,3 @@ class ApplicationChart extends Chart {
     }
 }
 
-export const generateGardenerCerts = (
-    gardenNamespace: string,
-    ca: CA = createSelfSignedCA('ca-gardener'),
-    ): GardenerCertificates => {
-
-    const apiserver = createClientTLS(ca, {
-        cn: 'gardener-apiserver',
-        extensions: defaultExtensions(),
-        altNames: serviceHosts('gardener-apiserver', gardenNamespace),
-    });
-    const controllerManager = createClientTLS(ca, {
-        cn: 'gardener-controller-manager',
-        extensions: defaultExtensions(),
-        altNames: serviceHosts('gardener-controller-manager', gardenNamespace),
-    });
-    const admissionController = createClientTLS(ca, {
-        cn: 'gardener-admission-controller',
-        extensions: defaultExtensions(),
-        altNames: serviceHosts('gardener-admission-controller', gardenNamespace),
-    });
-
-    return {
-        ca,
-        apiserver,
-        controllerManager,
-        admissionController,
-    };
-};

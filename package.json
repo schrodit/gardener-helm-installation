@@ -18,6 +18,7 @@
     "@0cfg/utils-common": "^0.1.8",
     "@0cfg/utils-node": "^0.1.8",
     "@kubernetes/client-node": "^0.16.3",
+    "@octokit/request-error": "^2.1.0",
     "@octokit/rest": "^18.12.0",
     "@types/node-forge": "^1.0.0",
     "axios": "^0.26.0",

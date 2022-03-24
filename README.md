@@ -162,7 +162,7 @@ yarn add gardener-installation
 ```
 
 ```typescript
-import {Installation, InputValues} from 'gardener-installation/lib';
+import {Landscape, InputValues} from 'gardener-installation/lib';
 
 
 (async () => {
@@ -171,7 +171,7 @@ import {Installation, InputValues} from 'gardener-installation/lib';
 
     const values: InputValues = {}
 
-    await Installation.run({
+    await Landscape.deploy({
       values,
       // dryRun: false,
     });
