@@ -1,17 +1,18 @@
 import path from 'path';
 import semver, {SemVer} from 'semver';
 import {InstallationManager} from '../../flow/InstallationManager';
-import {BaseComponent, BaseVersion} from '../../flow/BaseComponent';
+import {BaseComponent, BaseVersion, VersionedStepFactory} from '../../flow/BaseComponent';
 import {trimPrefix} from '../../utils/trimPrefix';
 import {KubeClient} from '../../utils/KubeClient';
 import {Helm} from '../../plugins/Helm';
 import {KeyValueState} from '../../state/State';
-import {Task, TaskEvents} from '../../flow/Flow';
+import {Task, StepEvents, Step, Flow} from '../../flow/Flow';
 import {createLogger} from '../../log';
 import {GeneralValues} from '../../Values';
 import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../../utils/tls';
 import {serviceHosts} from '../../utils/kubernetes';
-import {DefaultGardenerTask} from './DefaultGardenerTask';
+import {Controlplane} from './Controlplane';
+import {GardenletTask} from "./Gardenlet";
 
 const log = createLogger('Gardener');
 
@@ -42,15 +43,38 @@ export const Gardener = async (
     values: GeneralValues,
     state: KeyValueState<string>,
     dryRun: boolean,
-): Promise<Task[]> => {
+): Promise<Step[]> => {
     const comp = new GardenerComponent(values, state);
-    comp.setDefaultTask(new DefaultGardenerTask(
+    comp.setDefaultTask(new GardenerStepFactory(
         hostClient, helm, values, dryRun
     ));
     comp.addVersions(...SupportedVersions);
 
-    return await new InstallationManager().getTasks(comp);
+    return await new InstallationManager().getSteps(comp);
 };
+
+class GardenerStepFactory implements VersionedStepFactory {
+
+    constructor(
+        private readonly hostClient: KubeClient,
+        private readonly helm: Helm,
+        private readonly values: GeneralValues,
+        private readonly dryRun: boolean,
+    ) {
+    }
+
+    public createVersion(version: SemVer): Step {
+        return new Flow('Gardener',
+            new Controlplane(
+                version, this.hostClient, this.helm, this.values, this.dryRun
+            ),
+            new GardenletTask(
+                version, this.hostClient, this.helm, this.values, this.dryRun,
+            )
+        );
+    }
+
+}
 
 export class GardenerComponent extends BaseComponent {
 
@@ -74,12 +98,12 @@ export class GardenerComponent extends BaseComponent {
         return semver.rsort(this.versions.map(v => v.version))[0] as SemVer;
     }
 
-    public async install(version: SemVer): Promise<Task> {
-        const task = await super.install(version);
-        task.on(TaskEvents.COMPLETED, () => {
+    public async install(version: SemVer): Promise<Step> {
+        const step = await super.install(version);
+        step.on(StepEvents.COMPLETED, () => {
             this.state.store(LastVersionStateKey, version.raw);
         });
-        return task;
+        return step;
     }
 }
 

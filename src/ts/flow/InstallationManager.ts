@@ -1,7 +1,7 @@
 import {SemVer} from 'semver';
 import semver from 'semver';
 import {createLogger} from '../log';
-import {Flow, Task} from './Flow';
+import {Flow, Step, Task} from './Flow';
 
 const log = createLogger('InstallationManager');
 
@@ -28,7 +28,7 @@ export interface Component {
      * The function should wait until all components are healthy and optionally successfully migrated.
      * @param version version to install
      */
-    install(version: SemVer): Promise<Task>;
+    install(version: SemVer): Promise<Step>;
 }
 
 export interface Version {
@@ -55,12 +55,12 @@ export class InstallationTask extends Task {
 export class InstallationManager {
 
     constructor(
-        private readonly flow: Flow = new Flow(),
+        private readonly flow: Flow = new Flow(''),
     ) {
     }
 
-    public async getTasks(component: Component): Promise<Task[]> {
-        const tasks: Promise<Task>[] = [];
+    public async getSteps(component: Component): Promise<Step[]> {
+        const steps: Promise<Step>[] = [];
         const currentVersion = await component.getCurrentVersion();
         const targetVersion = await component.getTargetVersion();
 
@@ -73,9 +73,9 @@ export class InstallationManager {
             targetVersion,
             await component.getVersions(),
         ).forEach((v) => {
-            tasks.push(component.install(v));
+            steps.push(component.install(v));
         });
-        return await Promise.all(tasks);
+        return await Promise.all(steps);
     }
 
     /**
@@ -86,7 +86,7 @@ export class InstallationManager {
      * @param targetVersion
      */
     public async install(component: Component): Promise<void> {
-        this.flow.addTasks(...(await this.getTasks(component)));
+        this.flow.addSteps(...(await this.getSteps(component)));
         await this.flow.execute();
     }
 }

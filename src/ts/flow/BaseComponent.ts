@@ -1,20 +1,23 @@
 import {SemVer} from 'semver';
 import {Component, Version} from './InstallationManager';
-import {Task} from './Flow';
-import {DefaultGardenerTask} from "../components/gardener/DefaultGardenerTask";
+import {Step, Task} from './Flow';
 
 export interface BaseVersion extends Version {
     task?: Task,
 }
 
-export abstract class DefaultTask extends Task {
+export abstract class VersionedTask extends Task {
     protected version!: SemVer;
 
     public setVersion(version: SemVer) {
         this.version = version;
     }
 
-    public abstract copy(): DefaultTask;
+    public abstract copy(): VersionedTask;
+}
+
+export interface VersionedStepFactory {
+    createVersion(version: SemVer): Step
 }
 
 export abstract class BaseComponent implements Component {
@@ -22,7 +25,7 @@ export abstract class BaseComponent implements Component {
 
     constructor(
         public readonly name: string,
-        private defaultTask?: DefaultTask,
+        private defaultTask?: VersionedStepFactory,
     ) {
     }
 
@@ -33,15 +36,15 @@ export abstract class BaseComponent implements Component {
         this.versions.push(...versions);
     }
 
-    public setDefaultTask(task: DefaultTask) {
-        this.defaultTask = task;
+    public setDefaultTask(factory: VersionedStepFactory) {
+        this.defaultTask = factory;
     }
 
     public async getVersions(): Promise<Version[]> {
         return this.versions;
     }
 
-    public async install(version: SemVer): Promise<Task> {
+    public async install(version: SemVer): Promise<Step> {
         const v = this.versions.find(v => v.version.compare(version));
         if (!v) {
             throw new Error(`No Installation task for version ${version.raw} defined`);
@@ -52,10 +55,9 @@ export abstract class BaseComponent implements Component {
         if (!this.defaultTask) {
             throw new Error(`No default Installation task for version ${version.raw} defined`);
         }
-        const task = this.defaultTask.copy();
-        task.name = `${task.name}-${version.raw}`;
-        task.setVersion(version);
-        return task;
+        const step = this.defaultTask.createVersion(version);
+        step.name = `${step.name}-${version.raw}`;
+        return step;
     }
 
 }

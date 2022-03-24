@@ -12,56 +12,49 @@ import {deepMergeObject} from '../../utils/deepMerge';
 import {createSecret} from '../../state/KubernetesState';
 import {base64Decode} from '../../utils/base64Decode';
 import {InstallationManager, InstallationTask} from '../../flow/InstallationManager';
-import {DefaultTask} from '../../flow/BaseComponent';
+import {VersionedTask} from '../../flow/BaseComponent';
 import {KeyValueState} from '../../state/State';
 import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
 import {Backup, SeedBackupConfig} from '../Backup';
 import {GardenerComponent, SupportedVersions} from '../gardener/Gardener';
 import {GardenerChartsBasePath, GardenerRepoZipUrl} from './Gardener';
-import {Task} from "../../flow/Flow";
+import {Step, Task} from "../../flow/Flow";
+import {SemVer} from "semver";
 
 const log = createLogger('Gardenlet');
 
-export const Gardenlet = async (
+/*export const Gardenlet = async (
     hostClient: KubeClient,
     helm: Helm,
     values: GeneralValues,
     state: KeyValueState<string>,
     dryRun: boolean,
-): Promise<Task[]> => {
+): Promise<Step[]> => {
     const comp = new GardenerComponent(values, state);
     comp.setDefaultTask(new GardenletTask(
         hostClient, helm, values, dryRun,
     ));
     comp.addVersions(...SupportedVersions);
 
-    return await new InstallationManager().getTasks(comp);
-};
+    return await new InstallationManager().getSteps(comp);
+};*/
 
 /**
  * Deploys the host gardenlet.
  * Based on https://github.com/gardener/gardener/blob/master/docs/deployment/deploy_gardenlet_manually.md
  */
-export class GardenletTask extends DefaultTask {
+export class GardenletTask extends Task {
 
     private virtualClient?: KubeClient;
 
     constructor(
+        private readonly version: SemVer,
         private readonly hostClient: KubeClient,
         private readonly helm: Helm,
         private readonly values: GeneralValues,
         private readonly dryRun: boolean,
     ) {
         super('Gardenlet');
-    }
-
-    public copy(): GardenletTask {
-        return new GardenletTask(
-            this.hostClient,
-            this.helm,
-            this.values,
-            this.dryRun,
-        );
     }
 
     public async do(): Promise<void> {

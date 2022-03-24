@@ -26,6 +26,21 @@ export interface GardenerExtension {
     values?: Values,
 }
 
+export const GardenerExtensions = async (
+    applyFactory: KubeApplyFactory,
+    values: GeneralValues,
+    genDir: string,
+    dryRun: boolean,
+): Promise<Flow> => {
+    const tasks = await new GardenerExtensionsTask(
+        applyFactory,
+        values,
+        genDir,
+        dryRun,
+    ).getTasks();
+    return new Flow('GardenerExtensions', ...tasks);
+};
+
 export class GardenerExtensionsTask extends Task {
 
     private virtualClient?: KubeClient;
@@ -44,14 +59,18 @@ export class GardenerExtensionsTask extends Task {
         this.dm = new DownloadManager(genDir);
     }
 
-    public async do(): Promise<void> {
-        log.info('Installing Gardener Extensions');
+    public async getTasks(): Promise<Task[]> {
         if (!this.dryRun) {
             this.virtualClient = await waitUntilVirtualClusterIsReady(log, this.values);
         }
+        return await this.parseExtensions();
+    }
 
-        const flow = new Flow();
-        flow.addTasks(...await this.parseExtensions());
+    public async do(): Promise<void> {
+        log.info('Installing Gardener Extensions');
+
+        const flow = new Flow('');
+        flow.addSteps(...await this.getTasks());
         await flow.execute();
     }
 

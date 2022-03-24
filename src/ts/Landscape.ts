@@ -21,16 +21,16 @@ import {DefaultKubeClient} from './utils/DefaultKubeClient';
 import {createLogger} from './log/Logger';
 import {KubeApply, ManagedResources, LocalManifest} from './plugins/KubeApply';
 import {KubeClient} from './utils/KubeClient';
-import {Flow} from './flow/Flow';
+import {Flow, StepInfo} from './flow/Flow';
 import {HelmTaskFactory} from './flow/HelmTask';
 import {KubeApplyFactory} from './flow/KubeApplyTask';
 import {ExportVirtualClusterAdminKubeconfig} from './tasks/ExportApiserverKubeconfig';
 import {Gardener} from './components/gardener/Gardener';
-import {GardenerExtensionsTask} from './components/GardenerExtensions';
-import {Gardenlet} from './components/gardener/Gardenlet';
+import {GardenerExtensions} from './components/GardenerExtensions';
 import {GardenerInitConfigTask} from './components/GardenerInitConfig';
 import {internalFile} from './config';
 import {NamespacedKeyValueState} from './state/NamespacedKeyValueState';
+import {trimSuffix} from './utils/trimSuffix';
 
 const log = createLogger('Installation');
 
@@ -152,8 +152,8 @@ export class Landscape {
 
         const helmTaskFactory = new HelmTaskFactory(values, this.helm);
         const kubeApplyFactory = new KubeApplyFactory(this.kubeApply);
-        const flow = new Flow();
-        flow.addTasks(
+        const flow = new Flow('');
+        flow.addSteps(
             kubeApplyFactory.createTask(new LocalManifest('vpa', './src/charts/host/vpa/vpa-crd.yaml')),
             helmTaskFactory.createTask(new NginxIngressChart()),
             helmTaskFactory.createTask(new CertManagerChart()),
@@ -177,22 +177,22 @@ export class Landscape {
                 new NamespacedKeyValueState(this.genericState, 'gardener'),
                 this.dryRun,
             )),
-            new GardenerExtensionsTask(kubeApplyFactory, values, genDir, this.dryRun),
+            await GardenerExtensions(kubeApplyFactory, values, genDir, this.dryRun),
             helmTaskFactory.createTask(new GardenerDashboardChart(this.dryRun)),
             new GardenerInitConfigTask(this.helm, values, this.dryRun),
-            ...(await Gardenlet(
+            /* ...(await Gardenlet(
                 this.kubeClient,
                 this.helm,
                 values,
                 new NamespacedKeyValueState(this.genericState, 'gardenlet'),
-                this.dryRun)),
+                this.dryRun)),*/
         );
 
         await flow.execute();
 
         if (this.dryRun) {
             let msg = 'Flow\n';
-            flow.taskNames().forEach(t => msg += `- ${t}\n`);
+            flow.getStepInfo().forEach(i => msg += this.printStepInfo(i));
             log.info(msg);
         }
     }
@@ -221,6 +221,23 @@ export class Landscape {
     private static async readValues(path: string): Promise<any> {
         log.info(`Read values from ${path}`);
         return yaml.parse(await readFile(path, 'utf-8'));
+    }
+
+    private printStepInfo(stepInfo: StepInfo): string {
+        const indent = '  ';
+        let out = `- ${stepInfo.name}\n`;
+        if (stepInfo.steps) {
+            let steps = '';
+            stepInfo.steps.forEach(i => {
+                steps += this.printStepInfo(i);
+            });
+            steps = steps.replace(/\n/g, '\n  ');
+            if (steps.length !== 0) {
+                steps = trimSuffix(indent + steps, indent);
+            }
+            out += steps;
+        }
+        return out;
     }
 
 }

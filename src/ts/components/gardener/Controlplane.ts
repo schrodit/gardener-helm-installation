@@ -1,6 +1,6 @@
 import path from 'path';
 import IPCIDR from 'ip-cidr';
-import {DefaultTask} from '../../flow/BaseComponent';
+import {VersionedTask} from '../../flow/BaseComponent';
 import {KubeClient} from '../../utils/KubeClient';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
@@ -9,6 +9,8 @@ import {getKubeConfigForServiceAccount, base64EncodeMap} from '../../utils/kuber
 import {createLogger} from '../../log';
 import {deepMergeObject} from '../../utils/deepMerge';
 import {GardenerChartBasePath, GardenerRepoZipUrl} from './Gardener';
+import {SemVer} from "semver";
+import {Task} from "../../flow/Flow";
 
 const log = createLogger('Gardener');
 
@@ -55,26 +57,18 @@ const defaultResources = {
     },
 };
 
-export class DefaultGardenerTask extends DefaultTask {
+export class Controlplane extends Task {
 
     private virtualClient?: KubeClient;
 
     constructor(
+        private readonly version: SemVer,
         private readonly hostClient: KubeClient,
         private readonly helm: Helm,
         private readonly values: GeneralValues,
         private readonly dryRun: boolean,
     ) {
-        super('Gardener');
-    }
-
-    public copy(): DefaultGardenerTask {
-        return new DefaultGardenerTask(
-            this.hostClient,
-            this.helm,
-            this.values,
-            this.dryRun,
-        );
+        super('Controlplane');
     }
 
     public async do(): Promise<void> {
