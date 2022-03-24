@@ -1,6 +1,3 @@
-import {access, mkdir, readFile, writeFile} from 'fs/promises';
-import path from 'path';
-import {has} from '../utils/has';
 import {deepMergeObject} from '../utils/deepMerge';
 import {KeyValueState, State} from './State';
 

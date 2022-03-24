@@ -2,22 +2,15 @@ import {SemVer} from 'semver';
 import {GardenerComponent, LastVersionStateKey} from '../Gardener';
 import {GeneralValues} from '../../../Values';
 import {FakeKeyValueState} from '../../../state/FakeState';
-import {VersionedTask} from '../../../flow/BaseComponent';
+import {VersionedStepFactory} from '../../../flow/BaseComponent';
 import {InstallationManager} from '../../../flow/InstallationManager';
+import {Step} from '../../../flow/Flow';
+import {DefaultTask} from '../../../flow/DefaultTask';
 
-class FakeDefaultTask extends VersionedTask {
-    constructor() {
-        super('Fake');
+class FakeVersionedStepFactory implements VersionedStepFactory {
+    public createVersion(version: SemVer): Step {
+        return new DefaultTask('Fake', () => Promise.resolve(undefined));
     }
-
-    public copy(): VersionedTask {
-        return new FakeDefaultTask();
-    }
-
-    public do(): Promise<void> {
-        return Promise.resolve(undefined);
-    }
-
 }
 
 describe('Gardener Component', () => {
@@ -26,7 +19,7 @@ describe('Gardener Component', () => {
         const state = new FakeKeyValueState<string>();
         state.store(LastVersionStateKey, 'v1.41.1');
         const comp = new GardenerComponent({gardener: {}} as GeneralValues, state);
-        comp.setDefaultTask(new FakeDefaultTask());
+        comp.setDefaultStepFactory(new FakeVersionedStepFactory());
         comp.addVersions(
             {version: new SemVer('v1.41.1')},
             {version: new SemVer('v1.41.2')},
@@ -41,7 +34,7 @@ describe('Gardener Component', () => {
     it('init install given version', async () => {
         const state = new FakeKeyValueState<string>();
         const comp = new GardenerComponent({gardener: {version: 'v1.41.2'}} as GeneralValues, state);
-        comp.setDefaultTask(new FakeDefaultTask());
+        comp.setDefaultStepFactory(new FakeVersionedStepFactory());
         comp.addVersions(
             {version: new SemVer('v1.41.1')},
             {version: new SemVer('v1.41.2')},
@@ -57,7 +50,7 @@ describe('Gardener Component', () => {
         const state = new FakeKeyValueState<string>();
         state.store(LastVersionStateKey, 'v1.41.1');
         const comp = new GardenerComponent({gardener: {version: 'v1.41.2'}} as GeneralValues, state);
-        comp.setDefaultTask(new FakeDefaultTask());
+        comp.setDefaultStepFactory(new FakeVersionedStepFactory());
         comp.addVersions(
             {version: new SemVer('v1.41.1')},
             {version: new SemVer('v1.41.2')},

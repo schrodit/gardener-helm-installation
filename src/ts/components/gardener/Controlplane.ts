@@ -1,6 +1,6 @@
 import path from 'path';
 import IPCIDR from 'ip-cidr';
-import {VersionedTask} from '../../flow/BaseComponent';
+import {SemVer} from 'semver';
 import {KubeClient} from '../../utils/KubeClient';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
@@ -8,9 +8,8 @@ import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
 import {getKubeConfigForServiceAccount, base64EncodeMap} from '../../utils/kubernetes';
 import {createLogger} from '../../log';
 import {deepMergeObject} from '../../utils/deepMerge';
+import {Task} from '../../flow/Flow';
 import {GardenerChartBasePath, GardenerRepoZipUrl} from './Gardener';
-import {SemVer} from "semver";
-import {Task} from "../../flow/Flow";
 
 const log = createLogger('Gardener');
 

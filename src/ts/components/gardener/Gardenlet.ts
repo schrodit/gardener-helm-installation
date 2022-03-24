@@ -1,5 +1,6 @@
 import path from 'path';
 import {KubeConfig, KubernetesListObject, V1Secret} from '@kubernetes/client-node';
+import {SemVer} from 'semver';
 import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../../Values';
 import {createLogger} from '../../log/Logger';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
@@ -11,19 +12,14 @@ import {base64Encode} from '../../utils/base64Encode';
 import {deepMergeObject} from '../../utils/deepMerge';
 import {createSecret} from '../../state/KubernetesState';
 import {base64Decode} from '../../utils/base64Decode';
-import {InstallationManager, InstallationTask} from '../../flow/InstallationManager';
-import {VersionedTask} from '../../flow/BaseComponent';
-import {KeyValueState} from '../../state/State';
 import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
 import {Backup, SeedBackupConfig} from '../Backup';
-import {GardenerComponent, SupportedVersions} from '../gardener/Gardener';
+import {Task} from '../../flow/Flow';
 import {GardenerChartsBasePath, GardenerRepoZipUrl} from './Gardener';
-import {Step, Task} from "../../flow/Flow";
-import {SemVer} from "semver";
 
 const log = createLogger('Gardenlet');
 
-/*export const Gardenlet = async (
+/* Export const Gardenlet = async (
     hostClient: KubeClient,
     helm: Helm,
     values: GeneralValues,

@@ -6,16 +6,6 @@ export interface BaseVersion extends Version {
     task?: Task,
 }
 
-export abstract class VersionedTask extends Task {
-    protected version!: SemVer;
-
-    public setVersion(version: SemVer) {
-        this.version = version;
-    }
-
-    public abstract copy(): VersionedTask;
-}
-
 export interface VersionedStepFactory {
     createVersion(version: SemVer): Step
 }
@@ -25,7 +15,7 @@ export abstract class BaseComponent implements Component {
 
     constructor(
         public readonly name: string,
-        private defaultTask?: VersionedStepFactory,
+        private defaultStepFactory?: VersionedStepFactory,
     ) {
     }
 
@@ -36,8 +26,8 @@ export abstract class BaseComponent implements Component {
         this.versions.push(...versions);
     }
 
-    public setDefaultTask(factory: VersionedStepFactory) {
-        this.defaultTask = factory;
+    public setDefaultStepFactory(factory: VersionedStepFactory) {
+        this.defaultStepFactory = factory;
     }
 
     public async getVersions(): Promise<Version[]> {
@@ -52,10 +42,10 @@ export abstract class BaseComponent implements Component {
         if (v.task) {
             return v.task;
         }
-        if (!this.defaultTask) {
+        if (!this.defaultStepFactory) {
             throw new Error(`No default Installation task for version ${version.raw} defined`);
         }
-        const step = this.defaultTask.createVersion(version);
+        const step = this.defaultStepFactory.createVersion(version);
         step.name = `${step.name}-${version.raw}`;
         return step;
     }

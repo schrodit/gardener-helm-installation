@@ -1,6 +1,5 @@
 import {Task} from './Flow';
 
-
 export class DefaultTask extends Task {
 
     constructor(name: string, private readonly doFunc: () => Promise<void>) {

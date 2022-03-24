@@ -6,13 +6,13 @@ import {trimPrefix} from '../../utils/trimPrefix';
 import {KubeClient} from '../../utils/KubeClient';
 import {Helm} from '../../plugins/Helm';
 import {KeyValueState} from '../../state/State';
-import {Task, StepEvents, Step, Flow} from '../../flow/Flow';
+import {StepEvents, Step, Flow} from '../../flow/Flow';
 import {createLogger} from '../../log';
 import {GeneralValues} from '../../Values';
 import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../../utils/tls';
 import {serviceHosts} from '../../utils/kubernetes';
 import {Controlplane} from './Controlplane';
-import {GardenletTask} from "./Gardenlet";
+import {GardenletTask} from './Gardenlet';
 
 const log = createLogger('Gardener');
 
@@ -45,7 +45,7 @@ export const Gardener = async (
     dryRun: boolean,
 ): Promise<Step[]> => {
     const comp = new GardenerComponent(values, state);
-    comp.setDefaultTask(new GardenerStepFactory(
+    comp.setDefaultStepFactory(new GardenerStepFactory(
         hostClient, helm, values, dryRun
     ));
     comp.addVersions(...SupportedVersions);
