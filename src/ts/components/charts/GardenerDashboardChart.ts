@@ -1,15 +1,25 @@
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
+import {Chart, RemoteChartFromZip, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GeneralValues} from '../../Values';
 import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
 import {createLogger} from '../../log/Logger';
+import {trimPrefix} from '../../utils/trimPrefix';
 
 const log = createLogger('GardenerDashboard');
+
+const version = '1.55.1';
+
+const repoZipUrl = (version: string) =>
+    `https://github.com/gardener/dashboard/archive/refs/tags/${version}.zip`;
+export const chartsBasePath = (version: string, chart:string) =>
+    `dashboard-${trimPrefix(version, 'v')}/charts/${chart}`;
 
 export class GardenerDashboardChart extends Chart {
     constructor(private readonly dryRun: boolean) {
         super(
             'gardener-dashboard',
-            new ChartPath('./src/charts/host/gardener-dashboard'),
+            new RemoteChartFromZip(
+                repoZipUrl(version),
+                chartsBasePath(version, 'gardener-dashboard')),
             GardenerNamespace,
         );
     }
@@ -20,6 +30,9 @@ export class GardenerDashboardChart extends Chart {
             kubeconfig = (await waitUntilVirtualClusterIsReady(log, values)).getKubeConfig().exportConfig();
         }
         return {
+            image: {
+                tag: version,
+            },
             apiServerUrl: values.apiserver.url,
             apiServerCa: values.apiserver.tls.ca.cert,
             frontendConfig: {

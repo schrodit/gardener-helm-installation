@@ -33,27 +33,27 @@ describe('Versions', () => {
 
     describe('getLatestVersionForMinor', () => {
         it('should get latest minor version 1.3.9', () => {
-            const res = getLatestVersionForMinor(new SemVer('1.3.0'), [
-                new SemVer('1.2.0'),
-                new SemVer('1.3.0'),
-                new SemVer('1.3.1'),
-                new SemVer('1.3.9'),
-                new SemVer('1.4.9'),
+            const res = getLatestVersionForMinor(new SemVer('v1.3.0'), [
+                new SemVer('v1.2.0'),
+                new SemVer('v1.3.0'),
+                new SemVer('v1.3.1'),
+                new SemVer('v1.3.9'),
+                new SemVer('v1.4.9'),
             ]);
             expect(res).toBeDefined();
-            expect(res!.version).toEqual('1.3.9');
+            expect(res!.raw).toEqual('v1.3.9');
         });
 
         it('should return given version if latest', () => {
-            const res = getLatestVersionForMinor(new SemVer('1.3.2'), [
-                new SemVer('1.2.0'),
-                new SemVer('1.3.0'),
-                new SemVer('1.3.1'),
-                new SemVer('1.3.2'),
-                new SemVer('1.4.9'),
+            const res = getLatestVersionForMinor(new SemVer('v1.3.2'), [
+                new SemVer('v1.2.0'),
+                new SemVer('v1.3.0'),
+                new SemVer('v1.3.1'),
+                new SemVer('v1.3.2'),
+                new SemVer('v1.4.9'),
             ]);
             expect(res).toBeDefined();
-            expect(res!.version).toEqual('1.3.2');
+            expect(res!.raw).toEqual('v1.3.2');
         });
     });
 
