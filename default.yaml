@@ -8,7 +8,7 @@ gardener:
   seedCandidateDeterminationStrategy: SameRegion
 
   featureGates:
-    UseDNSRecords: false
+    UseDNSRecords: true
 
   soil:
     shootDefaultNetworks:

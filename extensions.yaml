@@ -13,6 +13,13 @@ gardener:
       controllerRegistration:
         repositoryName: gardener-extension-provider-gcp
 
+    provider-dns-cloudflare:
+      enabled: true
+      version: v0.0.2
+      controllerRegistration:
+        org: schrodit
+        repositoryName: gardener-extension-provider-dns-cloudflare
+
     external-dns:
       enabled: true
       version: v0.12.0
