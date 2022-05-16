@@ -23,6 +23,9 @@ export const SupportedVersions: BaseVersion[] = [
     {version: new SemVer('v1.42.5')},
     {version: new SemVer('v1.43.2')},
     {version: new SemVer('v1.44.2')},
+    {version: new SemVer('v1.44.6')},
+    {version: new SemVer('v1.45.1')},
+    {version: new SemVer('v1.46.2')},
 ];
 
 export const initialVersion = 'v1.41.1';

@@ -180,12 +180,6 @@ export class Landscape {
             await GardenerExtensions(kubeApplyFactory, values, genDir, this.dryRun),
             helmTaskFactory.createTask(new GardenerDashboardChart(this.dryRun)),
             new GardenerInitConfigTask(this.helm, values, this.dryRun),
-            /* ...(await Gardenlet(
-                this.kubeClient,
-                this.helm,
-                values,
-                new NamespacedKeyValueState(this.genericState, 'gardenlet'),
-                this.dryRun)),*/
         );
 
         await flow.execute();
