@@ -1,17 +1,17 @@
 import {KubeConfig} from '@kubernetes/client-node';
 import {Chart, Helm} from '../plugins/Helm';
 import {GeneralValues} from '../Values';
-import {Task} from './Flow';
+import {Task, VersionedValues} from './Flow';
 
-export class HelmTask extends Task {
+export class HelmTask<T extends VersionedValues> extends Task {
 
     constructor(
-        private readonly chart: Chart,
-        private readonly values: GeneralValues,
+        private readonly chart: Chart<T>,
+        private readonly values: T,
         private readonly helm: Helm,
         private readonly kubeConfig?: KubeConfig,
         ) {
-        super(chart.realeaseName);
+        super(chart.releaseName);
     }
 
     public async do(): Promise<void> {
@@ -20,14 +20,14 @@ export class HelmTask extends Task {
 
 }
 
-export class HelmTaskFactory {
+export class HelmTaskFactory<T extends VersionedValues> {
 
     constructor(
-        private readonly values: GeneralValues,
+        private readonly values: T,
         private readonly helm: Helm,
     ) {}
 
-    public createTask(chart: Chart, kubeConfig?: KubeConfig): HelmTask {
+    public createTask(chart: Chart<T>, kubeConfig?: KubeConfig): HelmTask<T> {
         return new HelmTask(chart, this.values, this.helm, kubeConfig);
     }
 }

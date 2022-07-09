@@ -1,5 +1,5 @@
-import {Chart, RemoteChart, Values} from '../../plugins/Helm';
 import {GeneralValues, GardenSystemNamespace} from '../../Values';
+import {Chart, RemoteChart, Values} from '../../../../plugins/Helm';
 
 export class NginxIngressChart extends Chart {
     constructor() {

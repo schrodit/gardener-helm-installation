@@ -1,14 +1,14 @@
 import path from 'path';
 import {SemVer} from 'semver';
 import IPCIDR from 'ip-cidr';
-import {KubeClient} from '../../utils/KubeClient';
-import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
-import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
-import {getKubeConfigForServiceAccount, base64EncodeMap} from '../../utils/kubernetes';
-import {createLogger} from '../../log/Logger';
-import {deepMergeObject} from '../../utils/deepMerge';
-import {Task} from '../../flow/Flow';
+import {ApiServerValues, waitUntilVirtualClusterIsReady} from '../VirtualCluster';
+import {Task, VersionedValues} from '../../../../flow/Flow';
+import {createLogger} from '../../../../log/Logger';
+import {KubeClient} from '../../../../utils/KubeClient';
+import {Chart, Helm, RemoteChartFromZip, Values} from '../../../../plugins/Helm';
+import {deepMergeObject} from '../../../../utils/deepMerge';
+import {base64EncodeMap, getKubeConfigForServiceAccount} from '../../../../utils/kubernetes';
 import {GardenerChartBasePath, GardenerRepoZipUrl} from './Gardener';
 
 const log = createLogger('Gardener');
@@ -56,6 +56,9 @@ const defaultResources = {
     },
 };
 
+export type ControlplaneValues = VersionedValues & ApiServerValues
+    & Pick<GeneralValues, 'gardener' | 'host' | 'hostCluster' | 'landscapeName' | 'etcd' | 'dns'>;
+
 export class Controlplane extends Task {
 
     private virtualClient?: KubeClient;
@@ -64,7 +67,7 @@ export class Controlplane extends Task {
         private readonly version: SemVer,
         private readonly hostClient: KubeClient,
         private readonly helm: Helm,
-        private readonly values: GeneralValues,
+        private readonly values: ControlplaneValues,
         private readonly dryRun: boolean,
     ) {
         super('Controlplane');
@@ -296,7 +299,7 @@ export class Controlplane extends Task {
 
 }
 
-class RuntimeChart extends Chart {
+class RuntimeChart extends Chart<VersionedValues> {
     constructor(version: string, private readonly values: Values) {
         super(
             'gardener-runtime',
@@ -305,12 +308,12 @@ class RuntimeChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: VersionedValues): Promise<Values> {
         return this.values;
     }
 }
 
-class ApplicationChart extends Chart {
+class ApplicationChart extends Chart<VersionedValues> {
     constructor(version: string, private readonly values: Values) {
         super(
             'gardener-application',
@@ -319,7 +322,7 @@ class ApplicationChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: VersionedValues): Promise<Values> {
         return this.values;
     }
 }

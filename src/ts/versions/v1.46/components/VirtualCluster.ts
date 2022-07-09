@@ -1,14 +1,14 @@
 import {Agent} from 'https';
 import axios from 'axios';
 import {KubeConfig} from '@kubernetes/client-node';
-import {Logger} from '../log/Logger';
-import {base64Encode} from '../utils/base64Encode';
-import {DefaultKubeClient} from '../utils/DefaultKubeClient';
-import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
-import {KubeClient} from '../utils/KubeClient';
-import {serviceHosts} from '../utils/kubernetes';
-import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../utils/tls';
 import {GeneralValues} from '../Values';
+import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../../../utils/tls';
+import {serviceHosts} from '../../../utils/kubernetes';
+import {base64Encode} from '../../../utils/base64Encode';
+import {retryWithBackoff} from '../../../utils/exponentialBackoffRetry';
+import {DefaultKubeClient} from '../../../utils/DefaultKubeClient';
+import {Logger} from '../../../log/Logger';
+import {KubeClient} from '../../../utils/KubeClient';
 
 export interface KubeApiserverCertificates {
     ca: CA,
@@ -16,6 +16,8 @@ export interface KubeApiserverCertificates {
     kubeControllerManager: TLS,
     admin: TLS,
 }
+
+export type ApiServerValues = Pick<GeneralValues, 'apiserver'>;
 
 export const generateKubeApiserverCerts = (
     gardenNamespace: string,
@@ -70,7 +72,7 @@ export const generateKubeAggregatorCerts = (): KubeAggregatorCertificates => {
     };
 };
 
-export const getVirtualClusterAdminKubeconfig = (values: GeneralValues): KubeConfig => {
+export const getVirtualClusterAdminKubeconfig = (values: ApiServerValues): KubeConfig => {
     const contextName = 'garden';
     const clusterName = 'virtual-cluster';
     const userName = 'admin';
@@ -99,7 +101,7 @@ export const getVirtualClusterAdminKubeconfig = (values: GeneralValues): KubeCon
 /**
  * Waits until the virtual cluster is ready and returns the KubeClient.
  */
-export const waitUntilVirtualClusterIsReady = async (log: Logger, values: GeneralValues): Promise<KubeClient> => {
+export const waitUntilVirtualClusterIsReady = async (log: Logger, values: ApiServerValues): Promise<KubeClient> => {
     const instance = axios.create({
         httpsAgent: new Agent({
             ca: values.apiserver.tls.ca.cert,

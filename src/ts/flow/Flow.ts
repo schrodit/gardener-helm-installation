@@ -1,7 +1,12 @@
 import {EventEmitter} from 'events';
 import {createLogger} from '../log/Logger';
+import {Values} from "../plugins/Helm";
 
 const log = createLogger('Flow');
+
+export type VersionedValues = {
+    version: string;
+}
 
 export enum StepEvents {
     COMPLETED = 'completed',
