@@ -8,8 +8,8 @@
   "license": "MIT",
   "scripts": {
     "setup": "node --loader ts-node/esm ./index.ts",
-    "lintFix": "eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet --fix",
-    "lint": "eslint '**/*.ts' --ignore-pattern node_modules/ --ignore-pattern *.d.ts --quiet",
+    "lintFix": "eslint '**/*.ts' --quiet --fix",
+    "lint": "eslint '**/*.ts' --quiet",
     "test": "jest --passWithNoTests",
     "build": "cti create ./src/ts && tsc",
     "prepack": "yarn build"
@@ -25,6 +25,7 @@
     "commander": "^9.0.0",
     "extract-zip": "^2.0.1",
     "ip-cidr": "^3.0.4",
+    "logform": "^2.4.2",
     "node-forge": "^1.2.1",
     "semver": "^7.3.5",
     "validator": "^13.7.0",

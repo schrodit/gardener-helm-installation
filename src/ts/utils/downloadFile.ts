@@ -1,8 +1,8 @@
 import {createWriteStream} from 'fs';
 import * as stream from 'stream';
 import {promisify} from 'util';
+import {rm} from 'fs/promises';
 import axios from 'axios';
-import {rm} from "fs/promises";
 
 const finished = promisify(stream.finished);
 

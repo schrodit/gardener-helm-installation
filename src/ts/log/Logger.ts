@@ -4,7 +4,7 @@ import {
     config, transports,
     format as wformat,
 } from 'winston';
-import * as logform from 'logform';
+import {Format} from 'logform';
 import {deepMergeObject} from '../utils/deepMerge';
 
 export enum LogLevel {
@@ -20,7 +20,7 @@ export enum LogFormat {
 
 class LogCollector {
     private level: LogLevel = LogLevel.INFO;
-    private format: logform.Format = wformat.cli();
+    private format: Format = wformat.cli();
     public logger!: wLogger;
 
     constructor() {

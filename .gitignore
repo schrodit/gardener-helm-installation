@@ -15,3 +15,12 @@ node_modules
 # gardener installer related directories.
 gen
 /state
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
