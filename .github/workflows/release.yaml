@@ -21,7 +21,7 @@ jobs:
       - name: version
         run: echo "::set-output name=version::$(cat ./package.json | jq -r .version)"
         id: version
-      - run: yarn
+      - run: yarn install
       - run: yarn lint
       - run: yarn test
       - run: yarn build
