@@ -1,4 +1,3 @@
-import {SemVer} from 'semver';
 import {GardenerComponent, LastVersionStateKey} from '../Gardener';
 import {GeneralValues} from '../../../Values';
 import {FakeKeyValueState} from '../../../state/FakeState';
@@ -6,6 +5,7 @@ import {VersionedStepFactory} from '../../../flow/BaseComponent';
 import {InstallationManager} from '../../../flow/InstallationManager';
 import {Step} from '../../../flow/Flow';
 import {DefaultTask} from '../../../flow/DefaultTask';
+import {SemVer} from 'semver';
 
 class FakeVersionedStepFactory implements VersionedStepFactory {
     public createVersion(version: SemVer): Step {

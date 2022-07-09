@@ -1,4 +1,3 @@
-import {V1Secret} from '@kubernetes/client-node';
 import {has} from '../utils/has';
 import {deepMergeObject} from '../utils/deepMerge';
 import {KubeClient} from '../utils/KubeClient';
@@ -6,6 +5,7 @@ import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
 import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../utils/kubernetes';
 import {createLogger} from '../log/Logger';
 import {KeyValueState, State} from './State';
+import {V1Secret} from '@kubernetes/client-node';
 
 const log = createLogger('KubernetesState');
 

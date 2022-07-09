@@ -1,4 +1,3 @@
-import validator from 'validator';
 import {has} from './utils/has';
 import {Values} from './plugins/Helm';
 import {State} from './state/State';
@@ -13,6 +12,7 @@ import {randomString} from './utils/randomString';
 import {GardenerExtension} from './components/GardenerExtensions';
 import {GardenerInitConfig} from './components/GardenerInitConfig';
 import {Backup, GardenBackup} from './components/Backup';
+import validator from 'validator';
 
 const log = createLogger('Values');
 

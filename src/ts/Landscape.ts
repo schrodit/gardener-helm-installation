@@ -1,7 +1,5 @@
 import {mkdir, readFile, writeFile, access} from 'fs/promises';
 import path from 'path';
-import yaml from 'yaml';
-import {KubeConfig} from '@kubernetes/client-node';
 import {NginxIngressChart} from './components/charts/NginxIngressChart';
 import {CertManagerChart} from './components/charts/CertManagerChart';
 import {IdentityChart} from './components/charts/IdentityChart';
@@ -31,6 +29,8 @@ import {GardenerInitConfigTask} from './components/GardenerInitConfig';
 import {internalFile} from './config';
 import {NamespacedKeyValueState} from './state/NamespacedKeyValueState';
 import {trimSuffix} from './utils/trimSuffix';
+import {KubeConfig} from '@kubernetes/client-node';
+import yaml from 'yaml';
 
 const log = createLogger('Installation');
 

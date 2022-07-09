@@ -1,6 +1,6 @@
-import {KubernetesObject} from '@kubernetes/client-node';
 import {Values} from '../plugins/Helm';
 import {GardenerV1Beta1APIVersion} from './gardener';
+import {KubernetesObject} from '@kubernetes/client-node';
 
 export const ControllerDeploymentKind = 'ControllerDeployment';
 

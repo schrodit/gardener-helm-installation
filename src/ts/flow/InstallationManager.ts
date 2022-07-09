@@ -1,7 +1,7 @@
-import {SemVer} from 'semver';
-import semver from 'semver';
 import {createLogger} from '../log';
 import {Flow, Step, Task} from './Flow';
+import {SemVer} from 'semver';
+import semver from 'semver';
 
 const log = createLogger('InstallationManager');
 

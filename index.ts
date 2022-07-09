@@ -1,8 +1,8 @@
 #!/bin/env -S node --loader ts-node/esm
-import {has} from '@0cfg/utils-common/lib/has';
-import {program} from 'commander';
 import {Landscape} from './src/ts/Landscape';
 import {createLogger, logCollector} from './src/ts/log/Logger';
+import {has} from '@0cfg/utils-common/lib/has';
+import {program} from 'commander';
 
 program.option('--dryRun [dryRun]');
 program.option('--level [logLevel]');

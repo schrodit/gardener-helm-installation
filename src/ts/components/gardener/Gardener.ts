@@ -1,5 +1,4 @@
 import path from 'path';
-import semver, {SemVer} from 'semver';
 import {InstallationManager} from '../../flow/InstallationManager';
 import {BaseComponent, BaseVersion, VersionedStepFactory} from '../../flow/BaseComponent';
 import {trimPrefix} from '../../utils/trimPrefix';
@@ -13,6 +12,7 @@ import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '.
 import {serviceHosts} from '../../utils/kubernetes';
 import {Controlplane} from './Controlplane';
 import {GardenletTask} from './Gardenlet';
+import semver, {SemVer} from 'semver';
 
 const log = createLogger('Gardener');
 

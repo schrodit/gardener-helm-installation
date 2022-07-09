@@ -1,5 +1,5 @@
-import {SemVer} from 'semver';
 import {getLatestVersionForMinor, Versions} from '../Versions';
+import {SemVer} from 'semver';
 
 describe('Versions', () => {
 

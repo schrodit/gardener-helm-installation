@@ -1,7 +1,7 @@
 import {URL} from 'url';
+import {KubeClient, KubernetesEventType, WatchObject} from './KubeClient';
 import {KubeConfig, KubernetesObjectApi, RequestResult, Watch} from '@kubernetes/client-node';
 import {has} from '@0cfg/utils-common/lib/has';
-import {KubeClient, KubernetesEventType, WatchObject} from './KubeClient';
 
 export class DefaultKubeClient extends KubernetesObjectApi implements KubeClient {
     private readonly kubeConfig: KubeConfig;

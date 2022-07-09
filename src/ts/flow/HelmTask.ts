@@ -1,7 +1,7 @@
-import {KubeConfig} from '@kubernetes/client-node';
 import {Chart, Helm} from '../plugins/Helm';
 import {GeneralValues} from '../Values';
 import {Task} from './Flow';
+import {KubeConfig} from '@kubernetes/client-node';
 
 export class HelmTask extends Task {
 
