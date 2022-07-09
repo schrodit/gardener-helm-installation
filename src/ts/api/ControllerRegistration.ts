@@ -1,5 +1,5 @@
-import {GardenerV1Beta1APIVersion} from './gardener';
 import {KubernetesObject} from '@kubernetes/client-node';
+import {GardenerV1Beta1APIVersion} from './gardener';
 
 export const ControllerRegistrationKind = 'ControllerRegistration';
 

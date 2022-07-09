@@ -1,4 +1,3 @@
-import {deepMergeObject} from '../utils/deepMerge';
 import {
     Logger as wLogger,
     createLogger as createWLogger,
@@ -6,6 +5,7 @@ import {
     format as wformat,
 } from 'winston';
 import {Format} from 'logform';
+import {deepMergeObject} from '../utils/deepMerge';
 
 export enum LogLevel {
     INFO = 'info',

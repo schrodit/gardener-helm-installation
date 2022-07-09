@@ -1,6 +1,7 @@
 import {access, mkdir, writeFile} from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import {KubeConfig} from '@kubernetes/client-node';
 import {createLogger} from '../log/Logger';
 import {KeyValueState} from '../state/State';
 import {GeneralValues} from '../Values';
@@ -9,7 +10,6 @@ import {execAsync} from '../utils/execAsync';
 import {has} from '../utils/has';
 import {DownloadManager} from '../utils/DownloadManager';
 import {internalFile} from '../config';
-import {KubeConfig} from '@kubernetes/client-node';
 
 const log = createLogger('Helm');
 

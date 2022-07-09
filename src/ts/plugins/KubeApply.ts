@@ -1,14 +1,14 @@
 import {readFile} from 'fs/promises';
 import path from 'path';
+import axios from 'axios';
+import * as YAML from 'yaml';
+import {KubernetesObject} from '@kubernetes/client-node';
 import {createLogger} from '../log/Logger';
 import {KeyValueState} from '../state/State';
 import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
 import {createOrUpdate, enrichKubernetesError} from '../utils/kubernetes';
 import {KubeClient} from '../utils/KubeClient';
 import {internalFile} from '../config';
-import axios from 'axios';
-import * as YAML from 'yaml';
-import {KubernetesObject} from '@kubernetes/client-node';
 
 const log = createLogger('KubeApply');
 

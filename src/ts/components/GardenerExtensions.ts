@@ -1,6 +1,7 @@
 import {readFile} from 'fs/promises';
 import path from 'path';
 import {URL} from 'url';
+import * as YAML from 'yaml';
 import {Flow, Task} from '../flow/Flow';
 import {Values} from '../plugins/Helm';
 import {trimPrefix} from '../utils/trimPrefix';
@@ -14,7 +15,6 @@ import {isV1Beta1ControllerRegistration, V1Beta1ControllerRegistration} from '..
 import {isV1Beta1DeploymentRegistration, V1Beta1ControllerDeployment} from '../api/ControllerDeployment';
 import {RawManifest} from '../plugins/KubeApply';
 import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
-import * as YAML from 'yaml';
 
 const log = createLogger('GardenerExtensions');
 

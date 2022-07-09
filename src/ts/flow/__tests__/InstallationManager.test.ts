@@ -1,5 +1,5 @@
-import {getVersionsToInstall, Version} from '../InstallationManager';
 import {SemVer} from 'semver';
+import {getVersionsToInstall, Version} from '../InstallationManager';
 
 describe('getVersionsToInstall', () => {
 

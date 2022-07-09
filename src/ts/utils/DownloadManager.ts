@@ -1,10 +1,10 @@
 import path from 'path';
 import {access, unlink} from 'fs/promises';
 import crypto from 'crypto';
+import * as extract from 'extract-zip';
 import {has} from './has';
 import {createDir} from './createDir';
 import {downloadFile} from './downloadFile';
-import * as extract from 'extract-zip';
 
 /**
  * Manages downloaded artifacts.

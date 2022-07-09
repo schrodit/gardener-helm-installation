@@ -1,5 +1,5 @@
-import {has} from './has';
 import * as forge from 'node-forge';
+import {has} from './has';
 
 // todo: (schrodit) check back when eliptic curves are supported
 // https://github.com/digitalbazaar/forge/pull/925

@@ -1,4 +1,6 @@
 import path from 'path';
+import {SemVer} from 'semver';
+import {KubeConfig, KubernetesListObject, V1Secret} from '@kubernetes/client-node';
 import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../../Values';
 import {createLogger} from '../../log/Logger';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
@@ -14,8 +16,6 @@ import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
 import {Backup, SeedBackupConfig} from '../Backup';
 import {Task} from '../../flow/Flow';
 import {GardenerChartsBasePath, GardenerRepoZipUrl} from './Gardener';
-import {SemVer} from 'semver';
-import {KubeConfig, KubernetesListObject, V1Secret} from '@kubernetes/client-node';
 
 const log = createLogger('Gardenlet');
 

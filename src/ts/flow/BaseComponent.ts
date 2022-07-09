@@ -1,6 +1,6 @@
+import {SemVer} from 'semver';
 import {Component, Version} from './InstallationManager';
 import {Step, Task} from './Flow';
-import {SemVer} from 'semver';
 
 export interface BaseVersion extends Version {
     task?: Task,

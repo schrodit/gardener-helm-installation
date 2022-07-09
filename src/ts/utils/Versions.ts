@@ -1,8 +1,8 @@
-import {createLogger} from '../log';
 import semver from 'semver';
 import {SemVer} from 'semver';
 import {Octokit} from '@octokit/rest';
 import {RequestError} from '@octokit/request-error';
+import {createLogger} from '../log/Logger';
 
 const log = createLogger('Versions');
 
