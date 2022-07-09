@@ -12,7 +12,9 @@
     "lint": "eslint '**/*.ts' --quiet",
     "test": "jest --passWithNoTests",
     "build": "cti create ./src/ts && tsc",
-    "prepack": "yarn build"
+    "prepack": "yarn build",
+    "cleanIndex": "rm ./src/**/index.ts",
+    "clean": "yarn run cleanIndex && rm node_modules && rm lib"
   },
   "dependencies": {
     "@0cfg/utils-common": "^0.1.8",
