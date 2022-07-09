@@ -124,7 +124,7 @@ export interface InstalledRelease {
 export class Helm {
     constructor(
         private readonly genDir: string,
-        private readonly state: KeyValueState<InstalledRelease>,
+        private readonly state: KeyValueState,
         private readonly dryRun: boolean,
         private readonly defaultNamespace: string,
     ) {
@@ -160,7 +160,7 @@ export class Helm {
             cmd+=` -f ${await this.writeValuesFile(name, values)}`;
         }
 
-        await this.state.store(name, {
+        await this.state.store<InstalledRelease>(name, {
             name,
             namespace,
             chart,

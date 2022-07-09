@@ -1,10 +1,12 @@
 import validator from 'validator';
 import {generateKey, KeypairPEM} from '../../utils/tls';
 import {Values} from '../../plugins/Helm';
-import {State} from '../../state/State';
 import {deepMergeObject} from '../../utils/deepMerge';
 import {has} from '../../utils/has';
 import {createLogger} from '../../log/Logger';
+import {randomString} from '../../utils/randomString';
+import {VersionedValues} from '../../flow/Flow';
+import {VersionedState} from '../../Landscape';
 import {ETCDCertificates, generateETCDCerts} from './components/etcd';
 import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates} from './components/VirtualCluster';
 import {GardenerCertificates, generateGardenerCerts} from './components/gardener/Gardener';
@@ -12,8 +14,6 @@ import {DNSValues} from './components/DNS';
 import {GardenerExtension} from './components/GardenerExtensions';
 import {GardenerInitConfig} from './components/GardenerInitConfig';
 import {Backup, GardenBackup} from './components/Backup';
-import {randomString} from "../../utils/randomString";
-import {VersionedValues} from "../../flow/Flow";
 
 const log = createLogger('Values');
 
@@ -22,7 +22,7 @@ export const GardenSystemNamespace = 'garden-system';
 export const KubeSystemNamespace = 'kube-system';
 export const DefaultNamespace = 'default';
 
-export interface StateValues {
+export interface StateValues extends VersionedValues {
     identity: {
         dashboardClientSecret?: string,
         kubectlClientSecret?: string,
@@ -52,15 +52,18 @@ export interface StateValues {
     }
 }
 
-export const emptyStateFile: StateValues = {
-    identity: {},
-    'gardener-dashboard': {},
-    etcd: {},
-    apiserver: {
-        admin: {},
-        aggregator: {},
-    },
-    gardener: {},
+export const emptyState = (version: string): StateValues => {
+    return {
+        version,
+        identity: {},
+        'gardener-dashboard': {},
+        etcd: {},
+        apiserver: {
+            admin: {},
+            aggregator: {},
+        },
+        gardener: {},
+    };
 };
 
 export interface InputValues extends VersionedValues {
@@ -113,7 +116,6 @@ export interface InputValues extends VersionedValues {
     },
 
     gardener: {
-        version?: string,
         autoPatchUpdate?: boolean,
         certs: GardenerCertificates,
         seedCandidateDeterminationStrategy: string,
@@ -187,8 +189,13 @@ export interface GeneralValues extends VersionedValues, InputValues {
     [key: string]: any,
 }
 
-export const generateGardenerInstallationValues = async (stateValues: StateValues, input: Values): Promise<GeneralValues> => {
-    validateInput(input);
+export const generateGardenerInstallationValues = async (stateValues: VersionedState, input: Values): Promise<GeneralValues> => {
+    if (!isInputValues(input)) {
+        throw validateInput(input);
+    }
+    if (!isStateValues(stateValues)) {
+        throw validateState(stateValues);
+    }
 
     const ingressHost = addDomainPrefix(input.host, input.ingressPrefix);
     const gardenerHost = addDomainPrefix(ingressHost, input.gardenerDomainPrefix);
@@ -243,8 +250,10 @@ export const generateGardenerInstallationValues = async (stateValues: StateValue
         stateValues.gardener.certs = generateGardenerCerts(GardenerNamespace, gardenerCerts?.ca);
     }
 
-    input = deepMergeObject(input, stateValues);
-    validateStateAndInputValues(input);
+    input = deepMergeObject(stateValues, input);
+    if (!isInputValues(input)) {
+        throw validateInput(input);
+    }
 
     const general: GeneralValues = deepMergeObject({
         host: input.host,
@@ -263,28 +272,61 @@ export const generateGardenerInstallationValues = async (stateValues: StateValue
     return general;
 };
 
-const validateInput = (input: Values): input is InputValues => {
-    required(input, 'version');
-    required(input, 'host');
-    if (!validator.isURL(input.host,  {require_protocol: false})) {
-        throw new Error(`Invalid host ${input.host}`);
-    }
-
-    required(input, 'acme', 'email');
-    required(input, 'dns', 'provider');
-    required(input, 'dns', 'credentials');
-    required(input, 'hostCluster', 'provider');
-    required(input, 'hostCluster', 'region');
-    required(input, 'hostCluster', 'network', 'nodeCIDR');
-    required(input, 'hostCluster', 'network', 'podCIDR');
-    required(input, 'hostCluster', 'network', 'serviceCIDR');
-    return true;
+const isInputValues = (input: Values): input is InputValues => {
+    return validateInput(input) === null;
 };
 
-const validateStateAndInputValues = (input: InputValues): void => {
+const validateInput = (input: Values): null | Error => {
+    try {
+        required(input, 'version');
+        if (!input.version.startsWith('v')) {
+            throw new Error(`Version is expected to be of the form "vMaj.Min.Patch" but is ${input.version}`);
+        }
+        required(input, 'host');
+        if (!validator.isURL(input.host,  {require_protocol: false})) {
+            throw new Error(`Invalid host ${input.host}`);
+        }
+
+        required(input, 'acme', 'email');
+        required(input, 'dns', 'provider');
+        required(input, 'dns', 'credentials');
+        required(input, 'hostCluster', 'provider');
+        required(input, 'hostCluster', 'region');
+        required(input, 'hostCluster', 'network', 'nodeCIDR');
+        required(input, 'hostCluster', 'network', 'podCIDR');
+        required(input, 'hostCluster', 'network', 'serviceCIDR');
+        return null;
+    } catch (e) {
+        if (e instanceof Error) {
+            return e;
+        }
+        throw e;
+    }
+};
+
+const isStateValues = (input: Values): input is StateValues => {
+    return validateState(input) === null;
+};
+
+const validateState = (input: Values): null | Error => {
+    try {
+        required(input, 'etcd');
+        required(input, 'apiserver');
+        required(input, 'gardener');
+        return null;
+    } catch (e) {
+        if (e instanceof Error) {
+            return e;
+        }
+        throw e;
+    }
+};
+
+const validateStateAndInputValues = (input: Values): input is InputValues => {
     required(input, 'identity', 'dashboardClientSecret');
     required(input, 'identity', 'kubectlClientSecret');
     required(input, 'gardener-dashboard', 'sessionSecret');
+    return true;
 };
 
 const generateRandomIfNotDefined = (value: string | undefined, state: string | undefined, length: number): string => {

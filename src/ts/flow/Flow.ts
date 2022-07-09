@@ -1,6 +1,5 @@
 import {EventEmitter} from 'events';
 import {createLogger} from '../log/Logger';
-import {Values} from "../plugins/Helm";
 
 const log = createLogger('Flow');
 

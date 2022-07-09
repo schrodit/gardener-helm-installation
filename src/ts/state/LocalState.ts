@@ -2,6 +2,7 @@ import {access, mkdir, readFile, writeFile} from 'fs/promises';
 import path from 'path';
 import {has} from '../utils/has';
 import {deepMergeObject} from '../utils/deepMerge';
+import {NotFound} from '../utils/exceptions';
 import {KeyValueState, State} from './State';
 
 export class LocalState<T> implements State<T> {
@@ -36,38 +37,38 @@ export class LocalState<T> implements State<T> {
 
 }
 
-export class LocalKeyValueState<T> implements KeyValueState<T> {
+export class LocalKeyValueState implements KeyValueState {
 
-    private state: LocalState<Record<string, T>>;
-    private data?: Record<string, T>;
+    private state: LocalState<Record<string, any>>;
+    private data?: Record<string, any>;
 
     constructor(
         stateFile: string,
     ) {
-        this.state = new LocalState<Record<string, T>>(stateFile, {});
+        this.state = new LocalState<Record<string, string>>(stateFile, {});
     }
 
-    public async getAll(): Promise<Record<string, T>> {
-        return await this.getData();
+    public async get<T>(key: string): Promise<T> {
+        const d = (await this.getData())[key];
+        if (!has(d)) {
+            throw new NotFound(`${key} not found in local state`);
+        }
+        return d as T;
     }
 
-    public async get(key: string): Promise<T | undefined> {
-        return (await this.getData())[key];
-    }
-
-    public async store(key: string, data: T): Promise<void> {
+    public async store<T>(key: string, data: T): Promise<void> {
         const d = await this.getData();
         d[key] = data;
-
+        this.data = d;
         await this.state.store(d);
     }
 
-    private async getData(): Promise<Record<string, T>> {
+    private async getData(): Promise<Record<string, any>> {
         if (has(this.data)) {
-            return this.data as Record<string, T>;
+            return this.data as Record<string, any>;
         }
         this.data = await this.state.get();
-        return this.data as Record<string, T>;
+        return this.data as Record<string, any>;
     }
 
 }

@@ -1,8 +1,9 @@
-import {Chart, RemoteChartFromZip, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GeneralValues} from '../../Values';
 import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
-import {createLogger} from '../../log/Logger';
-import {trimPrefix} from '../../utils/trimPrefix';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, RemoteChartFromZip, Values} from '../../../../plugins/Helm';
+import {trimPrefix} from '../../../../utils/trimPrefix';
+import {createLogger} from '../../../../log/Logger';
 
 const log = createLogger('GardenerDashboard');
 
@@ -13,7 +14,16 @@ const repoZipUrl = (version: string) =>
 export const chartsBasePath = (version: string, chart:string) =>
     `dashboard-${trimPrefix(version, 'v')}/charts/${chart}`;
 
-export class GardenerDashboardChart extends Chart {
+export type GardenerDashboardChartValues = VersionedValues
+    & Pick<GeneralValues,
+        'identity'
+        | 'apiserver'
+        | 'gardener-dashboard'
+        | 'issuerUrl'
+        | 'gardenerHost'
+        | 'wildcardSecretName'>;
+
+export class GardenerDashboardChart extends Chart<GardenerDashboardChartValues> {
     constructor(private readonly dryRun: boolean) {
         super(
             'gardener-dashboard',
@@ -24,7 +34,7 @@ export class GardenerDashboardChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: GardenerDashboardChartValues): Promise<Values> {
         let kubeconfig = 'dummy';
         if (!this.dryRun) {
             kubeconfig = (await waitUntilVirtualClusterIsReady(log, values)).getKubeConfig().exportConfig();

@@ -11,10 +11,10 @@
     "lintFix": "eslint '**/*.ts' --quiet --fix",
     "lint": "eslint '**/*.ts' --quiet",
     "test": "jest --passWithNoTests",
-    "build": "cti create ./src/ts && tsc",
+    "build": "cti create ./src/ts -e 'versions' -e '__tests__' -e '__test__' -i '*.test.ts' && tsc",
     "prepack": "yarn build",
-    "cleanIndex": "rm ./src/**/index.ts",
-    "clean": "yarn run cleanIndex && rm node_modules && rm lib"
+    "cleanIndex": "rm -f ./src/**/index.ts && rm -f ./src/**/index.ts.bak",
+    "clean": "yarn run cleanIndex && rm -rf ./node_modules && rm -rf ./lib"
   },
   "dependencies": {
     "@0cfg/utils-common": "^0.1.8",

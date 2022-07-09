@@ -1,8 +1,11 @@
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GeneralValues, required} from '../../Values';
-import {base64EncodeMap} from '../../utils/kubernetes';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, ChartPath, Values} from '../../../../plugins/Helm';
+import {base64EncodeMap} from '../../../../utils/kubernetes';
 
-export class EtcdMainChart extends Chart {
+export type EtcdMainChartValues = VersionedValues & Pick<GeneralValues, 'etcd' | 'backup'>;
+
+export class EtcdMainChart extends Chart<EtcdMainChartValues> {
     constructor() {
         super(
             'etcd-main',
@@ -11,7 +14,7 @@ export class EtcdMainChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: EtcdMainChartValues): Promise<Values> {
         return {
             name: 'garden-etcd-main',
             backup: this.backupConfig(values),
@@ -32,7 +35,7 @@ export class EtcdMainChart extends Chart {
         };
     }
 
-    private backupConfig(values: GeneralValues) {
+    private backupConfig(values: EtcdMainChartValues) {
         if (!values.backup) {
             return;
         }
@@ -59,7 +62,9 @@ export class EtcdMainChart extends Chart {
     }
 }
 
-export class EtcdEventsChart extends Chart {
+export type EtcdEventsChartValues = VersionedValues & Pick<GeneralValues, 'etcd'>;
+
+export class EtcdEventsChart extends Chart<EtcdEventsChartValues> {
     constructor() {
         super(
             'etcd-events',
@@ -68,7 +73,7 @@ export class EtcdEventsChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: EtcdEventsChartValues): Promise<Values> {
         return {
             name: 'garden-etcd-events',
             tls: {

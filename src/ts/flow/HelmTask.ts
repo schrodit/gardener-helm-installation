@@ -1,6 +1,5 @@
 import {KubeConfig} from '@kubernetes/client-node';
 import {Chart, Helm} from '../plugins/Helm';
-import {GeneralValues} from '../Values';
 import {Task, VersionedValues} from './Flow';
 
 export class HelmTask<T extends VersionedValues> extends Task {

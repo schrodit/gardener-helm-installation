@@ -1,4 +1,6 @@
+import {has} from '@0cfg/utils-common/lib/has';
 import {deepMergeObject} from '../utils/deepMerge';
+import {NotFound} from '../utils/exceptions';
 import {KeyValueState, State} from './State';
 
 export class FakeState<T> implements State<T> {
@@ -22,18 +24,18 @@ export class FakeState<T> implements State<T> {
 
 }
 
-export class FakeKeyValueState<T> implements KeyValueState<T> {
-    private data: Record<string, T> = {};
+export class FakeKeyValueState implements KeyValueState {
+    private data: Record<string, any> = {};
 
-    public async getAll(): Promise<Record<string, T>> {
-        return this.data;
+    public async get<T>(key: string): Promise<T> {
+        const v = this.data[key];
+        if (!has(v)) {
+            throw new NotFound(`${key} not found`);
+        }
+        return v;
     }
 
-    public async get(key: string): Promise<T | undefined> {
-        return this.data[key];
-    }
-
-    public async store(key: string, data: T): Promise<void> {
+    public async store<T>(key: string, data: T): Promise<void> {
         this.data[key] = data;
     }
 }

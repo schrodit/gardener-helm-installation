@@ -1,7 +1,8 @@
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
-import {GardenerNamespace, GeneralValues} from '../../Values';
+import {GardenerNamespace} from '../../Values';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, ChartPath, Values} from '../../../../plugins/Helm';
 
-export class NetworkPoliciesChart extends Chart {
+export class NetworkPoliciesChart extends Chart<VersionedValues> {
     constructor() {
         super(
             'gardener-network-policies',
@@ -10,7 +11,7 @@ export class NetworkPoliciesChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: VersionedValues): Promise<Values> {
         return {};
     }
 }

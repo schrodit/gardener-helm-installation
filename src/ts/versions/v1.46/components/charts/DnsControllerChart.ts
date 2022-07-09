@@ -1,7 +1,10 @@
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
 import {GardenSystemNamespace, GeneralValues} from '../../Values';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, ChartPath, Values} from '../../../../plugins/Helm';
 
-export class DnsControllerChart extends Chart {
+export type DnsControllerChartValues = VersionedValues & Pick<GeneralValues, 'dnsController'>;
+
+export class DnsControllerChart extends Chart<DnsControllerChartValues> {
     constructor() {
         super(
             'dns-controller',
@@ -10,7 +13,7 @@ export class DnsControllerChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: DnsControllerChartValues): Promise<Values> {
         return {
             identifier: 'gardener-default',
             fullnameOverride: 'host-dns-controller-manager',

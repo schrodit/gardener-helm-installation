@@ -1,18 +1,22 @@
-import {DefaultNamespace, emptyStateFile, InputValues, StateValues} from "./Values";
-import {KubeConfig} from "@kubernetes/client-node";
-import {DefaultKubeClient} from "./utils/DefaultKubeClient";
-import {LocalKeyValueState, LocalState} from "./state/LocalState";
-import {KubernetesKeyValueState, KubernetesState} from "./state/KubernetesState";
-import {KeyValueState, State} from "./state/State";
-import {Helm, InstalledRelease, Values} from "./plugins/Helm";
-import {KubeApply, ManagedResources} from "./plugins/KubeApply";
-import {internalFile} from "./config";
-import {deepMergeObject} from "./utils/deepMerge";
-import {createLogger} from "./log/Logger";
-import yaml from "yaml";
-import {readFile} from "fs/promises";
-import {stat} from "fs";
-import {getInstallation} from "./versions/installations";
+import {readFile} from 'fs/promises';
+import {KubeConfig} from '@kubernetes/client-node';
+import yaml from 'yaml';
+import {DefaultKubeClient} from './utils/DefaultKubeClient';
+import {LocalKeyValueState, LocalState} from './state/LocalState';
+import {KubernetesKeyValueState, KubernetesState} from './state/KubernetesState';
+import {KeyValueState, State} from './state/State';
+import {Helm, Values} from './plugins/Helm';
+import {KubeApply} from './plugins/KubeApply';
+import {internalFile} from './config';
+import {deepMergeObject} from './utils/deepMerge';
+import {createLogger} from './log/Logger';
+import {convertStateValues, getInstallation} from './versions/installations';
+import {Flow} from './flow/Flow';
+import {KubeClient} from './utils/KubeClient';
+import {DefaultNamespace, emptyState, StateValues} from './versions/v1.46/Values';
+import {VERSION} from './versions/v1.46/installation';
+import {NotFound} from './utils/exceptions';
+import {has} from "@0cfg/utils-common/lib/has";
 
 const defaultValuesFile = './default.yaml';
 const extensionsValuesFile = './extensions.yaml';
@@ -23,33 +27,51 @@ const kubeApplyStateFile = './state/kube-apply-state.yaml';
 
 const log = createLogger('Landscape');
 
+const stateKey = 'state';
+
 export interface LandscapeInstallationConfig {
     dryRun?: boolean;
     defaultNamespace?: string;
     valueFiles?: string[];
-    values?: InputValues;
+    values?: VersionedValues;
 }
 
-export type VersionedState = {
+export type VersionedState = Values & {
     version: string;
 }
 
-export type VersionedValues = Values & {
+type VersionedValues = Values & {
     version: string;
 }
 
 export const deploy = async (config: LandscapeInstallationConfig) => {
-    const {kubeClient, state, values} = await setUp(config);
-    const currentState = await state.get();
+    const {kubeClient, state, values, helm, kubeApply} = await setUp(config);
+    const currentState = await getCurrentState(state, kubeClient, config.dryRun ?? false);
+    log.info(`Current Version ${currentState.version}`);
+    log.info(`Install to version ${values.version}`);
     // todo add phase to state.
     if (values.version === currentState.version) {
         log.info(`Nothing todo: version ${values.version} is already installed`);
     }
+
+    const targetState = convertStateValues(currentState, values.version);
+
     // get Installation for version
-    const inst = new (getInstallation(values.version))();
+    const inst = new (getInstallation(values.version))(
+        new InstallationState(state),
+        kubeClient,
+        helm,
+        kubeApply,
+        {
+            genDir,
+            dryRun: config.dryRun ?? false,
+        },
+    );
 
+    const flow = new Flow('');
+    await inst.install(flow, targetState, values);
 
-
+    log.info(`Successfully installed version ${values.version}`);
 };
 
 const setUp = async (config: LandscapeInstallationConfig) => {
@@ -57,28 +79,27 @@ const setUp = async (config: LandscapeInstallationConfig) => {
     kc.loadFromDefault();
     const kubeClient = new DefaultKubeClient(kc);
 
-    let state: State<VersionedState> = new LocalState<VersionedState>(stateFile, emptyStateFile);
+    let state: KeyValueState = new LocalKeyValueState(stateFile);
     if (!config.dryRun) {
         log.info(`Deploying to ${kc.getCurrentCluster()?.server}`);
-        state = new KubernetesState<VersionedState>(
+        state = new KubernetesKeyValueState(
             kubeClient,
-            'state',
+            'state-v2',
             DefaultNamespace,
-            emptyStateFile,
         );
     }
 
-    let helmState: KeyValueState<InstalledRelease> = new LocalKeyValueState<InstalledRelease>(helmStateFile);
+    let helmState: KeyValueState = new LocalKeyValueState(helmStateFile);
     if (!config.dryRun) {
-        helmState = new KubernetesKeyValueState<InstalledRelease>(
+        helmState = new KubernetesKeyValueState(
             kubeClient,
             'helm-state',
             DefaultNamespace,
         );
     }
-    let kubeApplyState: KeyValueState<ManagedResources[]> = new LocalKeyValueState<ManagedResources[]>(kubeApplyStateFile);
+    let kubeApplyState: KeyValueState = new LocalKeyValueState(kubeApplyStateFile);
     if (!config.dryRun) {
-        kubeApplyState = new KubernetesKeyValueState<ManagedResources[]>(
+        kubeApplyState = new KubernetesKeyValueState(
             kubeClient,
             'kube-apply-state',
             DefaultNamespace,
@@ -113,6 +134,45 @@ const setUp = async (config: LandscapeInstallationConfig) => {
         kubeApplyState,
         values,
     };
+};
+
+class InstallationState {
+
+    public constructor(
+        private readonly state: KeyValueState,
+    ) {
+    }
+
+    public async store<T extends VersionedState>(s: T): Promise<void> {
+        await this.state.store(stateKey, s);
+    }
+}
+
+const getCurrentState = async (newState: KeyValueState, kubeClient: KubeClient, dryRun: boolean): Promise<VersionedState> => {
+    try {
+        return await newState.get<VersionedState>(stateKey);
+    } catch (e) {
+        if (!(e instanceof NotFound)) {
+            throw e;
+        }
+        // fall back to old state file
+        log.info('Fall back to old state');
+        let oldState: State<StateValues> = new LocalState<StateValues>(stateFile, emptyState(`${VERSION}.0`));
+        if (!dryRun) {
+            oldState = new KubernetesState<StateValues>(
+                kubeClient,
+                'state',
+                DefaultNamespace,
+                emptyState(`${VERSION}.0`),
+            );
+        }
+
+        const v = (await oldState.get()) as unknown as VersionedState;
+        if (!has(v.version)) {
+            v.version = v.gardener?.version ?? `${VERSION}.0`;
+        }
+        return v;
+    }
 };
 
 const readValueFiles = async(valueFiles: string[]): Promise<any> => {
