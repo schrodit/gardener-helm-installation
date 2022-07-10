@@ -1,15 +1,16 @@
 import validator from 'validator';
-import {has} from './utils/has';
-import {Values} from './plugins/Helm';
-import {State} from './state/State';
-import {generateKey, KeypairPEM} from './utils/tls';
+import {generateKey, KeypairPEM} from '../../utils/tls';
+import {Values} from '../../plugins/Helm';
+import {deepMergeObject} from '../../utils/deepMerge';
+import {has} from '../../utils/has';
+import {createLogger} from '../../log/Logger';
+import {randomString} from '../../utils/randomString';
+import {VersionedValues} from '../../flow/Flow';
+import {VersionedState} from '../../Landscape';
 import {ETCDCertificates, generateETCDCerts} from './components/etcd';
 import {generateKubeAggregatorCerts, generateKubeApiserverCerts, KubeAggregatorCertificates, KubeApiserverCertificates} from './components/VirtualCluster';
-import {deepMergeObject} from './utils/deepMerge';
-import {createLogger} from './log/Logger';
 import {GardenerCertificates, generateGardenerCerts} from './components/gardener/Gardener';
 import {DNSValues} from './components/DNS';
-import {randomString} from './utils/randomString';
 import {GardenerExtension} from './components/GardenerExtensions';
 import {GardenerInitConfig} from './components/GardenerInitConfig';
 import {Backup, GardenBackup} from './components/Backup';
@@ -21,7 +22,7 @@ export const GardenSystemNamespace = 'garden-system';
 export const KubeSystemNamespace = 'kube-system';
 export const DefaultNamespace = 'default';
 
-export interface StateValues {
+export interface StateValues extends VersionedValues {
     identity: {
         dashboardClientSecret?: string,
         kubectlClientSecret?: string,
@@ -51,18 +52,21 @@ export interface StateValues {
     }
 }
 
-export const emptyStateFile: StateValues = {
-    identity: {},
-    'gardener-dashboard': {},
-    etcd: {},
-    apiserver: {
-        admin: {},
-        aggregator: {},
-    },
-    gardener: {},
+export const emptyState = (version: string): StateValues => {
+    return {
+        version,
+        identity: {},
+        'gardener-dashboard': {},
+        etcd: {},
+        apiserver: {
+            admin: {},
+            aggregator: {},
+        },
+        gardener: {},
+    };
 };
 
-export interface InputValues {
+export interface InputValues extends VersionedValues {
     landscapeName: string,
     host: string,
     ingressPrefix?: string,
@@ -112,7 +116,6 @@ export interface InputValues {
     },
 
     gardener: {
-        version?: string,
         autoPatchUpdate?: boolean,
         certs: GardenerCertificates,
         seedCandidateDeterminationStrategy: string,
@@ -157,7 +160,7 @@ export interface InputValues {
     [key: string]: any,
 }
 
-export interface GeneralValues extends InputValues {
+export interface GeneralValues extends VersionedValues, InputValues {
     host: string,
     ingressHost: string,
     gardenerHost: string,
@@ -186,16 +189,19 @@ export interface GeneralValues extends InputValues {
     [key: string]: any,
 }
 
-export const generateGardenerInstallationValues = async (state: State<StateValues>, input: InputValues): Promise<GeneralValues> => {
-    validateInput(input);
+export const generateGardenerInstallationValues = async (stateValues: VersionedState, input: Values): Promise<GeneralValues> => {
+    if (!isInputValues(input)) {
+        throw validateInput(input);
+    }
+    if (!isStateValues(stateValues)) {
+        throw validateState(stateValues);
+    }
 
     const ingressHost = addDomainPrefix(input.host, input.ingressPrefix);
     const gardenerHost = addDomainPrefix(ingressHost, input.gardenerDomainPrefix);
     const apiserverHost = addDomainPrefix(ingressHost, input.apiserverDomainPrefix);
     const apiserverUrl = `https://${apiserverHost}`;
     const issuerUrl = `https://${gardenerHost}/oidc`;
-
-    const stateValues = await state.get();
 
     // generate random values if not defined
     stateValues.identity.dashboardClientSecret = generateRandomIfNotDefined(
@@ -220,11 +226,13 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
     }
 
     const apiserverTls = stateValues.apiserver.tls;
+    let updatedApiServerTls = false;
     if (!has(apiserverTls) || !has(apiserverTls?.admin, apiserverTls?.kubeControllerManager, apiserverTls?.kubeControllerManager)) {
         log.info('apiserver certs not found. Generating...');
+        updatedApiServerTls = true;
         stateValues.apiserver.tls = generateKubeApiserverCerts(GardenerNamespace, apiserverHost, gardenerHost, apiserverTls?.ca);
     }
-    if (!has(stateValues.apiserver.aggregator.tls)) {
+    if (updatedApiServerTls || !has(stateValues.apiserver.aggregator.tls)) {
         log.info('apiserver aggregator certs not found. Generating...');
         stateValues.apiserver.aggregator.tls = generateKubeAggregatorCerts();
     }
@@ -244,11 +252,10 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
         stateValues.gardener.certs = generateGardenerCerts(GardenerNamespace, gardenerCerts?.ca);
     }
 
-    input = deepMergeObject(input, stateValues);
-
-    await state.store(stateValues);
-    log.info('Succesfully stored state');
-    validateStateAndInputValues(input);
+    input = deepMergeObject(stateValues, input);
+    if (!isInputValues(input)) {
+        throw validateInput(input);
+    }
 
     const general: GeneralValues = deepMergeObject({
         host: input.host,
@@ -267,26 +274,61 @@ export const generateGardenerInstallationValues = async (state: State<StateValue
     return general;
 };
 
-const validateInput = (input: InputValues): void => {
-    required(input, 'host');
-    if (!validator.isURL(input.host,  {require_protocol: false})) {
-        throw new Error(`Invalid host ${input.host}`);
-    }
-
-    required(input, 'acme', 'email');
-    required(input, 'dns', 'provider');
-    required(input, 'dns', 'credentials');
-    required(input, 'hostCluster', 'provider');
-    required(input, 'hostCluster', 'region');
-    required(input, 'hostCluster', 'network', 'nodeCIDR');
-    required(input, 'hostCluster', 'network', 'podCIDR');
-    required(input, 'hostCluster', 'network', 'serviceCIDR');
+const isInputValues = (input: Values): input is InputValues => {
+    return validateInput(input) === null;
 };
 
-const validateStateAndInputValues = (input: InputValues): void => {
+const validateInput = (input: Values): null | Error => {
+    try {
+        required(input, 'version');
+        if (!input.version.startsWith('v')) {
+            throw new Error(`Version is expected to be of the form "vMaj.Min.Patch" but is ${input.version}`);
+        }
+        required(input, 'host');
+        if (!validator.isURL(input.host,  {require_protocol: false})) {
+            throw new Error(`Invalid host ${input.host}`);
+        }
+
+        required(input, 'acme', 'email');
+        required(input, 'dns', 'provider');
+        required(input, 'dns', 'credentials');
+        required(input, 'hostCluster', 'provider');
+        required(input, 'hostCluster', 'region');
+        required(input, 'hostCluster', 'network', 'nodeCIDR');
+        required(input, 'hostCluster', 'network', 'podCIDR');
+        required(input, 'hostCluster', 'network', 'serviceCIDR');
+        return null;
+    } catch (e) {
+        if (e instanceof Error) {
+            return e;
+        }
+        throw e;
+    }
+};
+
+export const isStateValues = (input: Values): input is StateValues => {
+    return validateState(input) === null;
+};
+
+const validateState = (input: Values): null | Error => {
+    try {
+        required(input, 'etcd');
+        required(input, 'apiserver');
+        required(input, 'gardener');
+        return null;
+    } catch (e) {
+        if (e instanceof Error) {
+            return e;
+        }
+        throw e;
+    }
+};
+
+const validateStateAndInputValues = (input: Values): input is InputValues => {
     required(input, 'identity', 'dashboardClientSecret');
     required(input, 'identity', 'kubectlClientSecret');
     required(input, 'gardener-dashboard', 'sessionSecret');
+    return true;
 };
 
 const generateRandomIfNotDefined = (value: string | undefined, state: string | undefined, length: number): string => {

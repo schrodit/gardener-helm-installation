@@ -5,6 +5,7 @@ import {KubeClient} from '../utils/KubeClient';
 import {retryWithBackoff} from '../utils/exponentialBackoffRetry';
 import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../utils/kubernetes';
 import {createLogger} from '../log/Logger';
+import {NotFound} from '../utils/exceptions';
 import {KeyValueState, State} from './State';
 
 const log = createLogger('KubernetesState');
@@ -115,26 +116,26 @@ export class KubernetesState<T> extends KubernetesStateBase<T> implements State<
 
 }
 
-export class KubernetesKeyValueState<T> extends KubernetesStateBase<T> implements KeyValueState<T> {
-    private data?: Record<string, T>;
+export class KubernetesKeyValueState extends KubernetesStateBase<string> implements KeyValueState {
+    private data?: Record<string, string>;
 
-    public async getAll(): Promise<Record<string, T>> {
-        return await this.getData();
+    public async get<T>(key: string): Promise<T> {
+        const v = (await this.getData())[key];
+        if (!has(v)) {
+            throw new NotFound(`${key} not found in Kubernetes state`);
+        }
+        return JSON.parse(v);
     }
 
-    public async get(key: string): Promise<T | undefined> {
-        return (await this.getData())[key];
-    }
-
-    public async store(key: string, data: T): Promise<void> {
+    public async store<T>(key: string, data: T): Promise<void> {
         const d = await this.getData();
-        d[key] = data;
+        d[key] = JSON.stringify(data);
         await this.storeInSecret(d);
     }
 
-    private async getData(): Promise<Record<string, T>> {
+    private async getData(): Promise<Record<string, string>> {
         if (has(this.data)) {
-            return this.data as Record<string, T>;
+            return this.data as Record<string, string>;
         }
         const raw = await this.getDataFromSecret();
 
@@ -143,7 +144,7 @@ export class KubernetesKeyValueState<T> extends KubernetesStateBase<T> implement
         for (const key in raw) {
             this.data[key] = JSON.parse(Buffer.from(raw[key], 'base64').toString('utf-8'));
         }
-        return this.data as Record<string, T>;
+        return this.data as Record<string, string>;
     }
 
 }

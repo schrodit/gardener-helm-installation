@@ -1,9 +1,20 @@
 import {DNS, nonRedundantDnsNames} from '../DNS';
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
-import {base64EncodeMap} from '../../utils/kubernetes';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, ChartPath, Values} from '../../../../plugins/Helm';
+import {base64EncodeMap} from '../../../../utils/kubernetes';
 
-export class HostConfigurationChart extends Chart {
+export type HostConfigurationChartValues = VersionedValues
+    & Pick<GeneralValues,
+        'apiserver'
+        | 'dns'
+        | 'dnsController'
+        | 'acme'
+        | 'ingressHost'
+        | 'gardenerHost'
+        | 'wildcardSecretName'>;
+
+export class HostConfigurationChart extends Chart<HostConfigurationChartValues> {
     constructor() {
         super(
             'host-configuration',
@@ -12,7 +23,7 @@ export class HostConfigurationChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: HostConfigurationChartValues): Promise<Values> {
         return {
             dnsControllerClass: values.dnsController.class,
             secretName: values.wildcardSecretName,

@@ -1,3 +1,6 @@
+
+version: v1.47.2
+
 landscapeName: gardener-installation
 
 apiserverDomainPrefix: api

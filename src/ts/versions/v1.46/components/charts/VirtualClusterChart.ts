@@ -1,7 +1,10 @@
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GeneralValues} from '../../Values';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, ChartPath, Values} from '../../../../plugins/Helm';
 
-export class VirtualClusterChart extends Chart {
+export type VirtualClusterChartValues = VersionedValues & Pick<GeneralValues, 'apiserver' | 'issuerUrl'>
+
+export class VirtualClusterChart extends Chart<VirtualClusterChartValues> {
     constructor() {
         super(
             'virtual-apiserver',
@@ -10,7 +13,7 @@ export class VirtualClusterChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: VirtualClusterChartValues): Promise<Values> {
         return {
             name: 'virtual-cluster',
             apiServer: {

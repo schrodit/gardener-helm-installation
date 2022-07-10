@@ -4,30 +4,30 @@ import crypto from 'crypto';
 import {KubeConfig} from '@kubernetes/client-node';
 import {createLogger} from '../log/Logger';
 import {KeyValueState} from '../state/State';
-import {GeneralValues} from '../Values';
 import {deepMergeObject} from '../utils/deepMerge';
 import {execAsync} from '../utils/execAsync';
 import {has} from '../utils/has';
 import {DownloadManager} from '../utils/DownloadManager';
 import {internalFile} from '../config';
+import {VersionedValues} from '../flow/Flow';
 
 const log = createLogger('Helm');
 
 export type Values = Record<string, any>
 
-export abstract class Chart {
+export abstract class Chart<T extends VersionedValues> {
 
     public constructor(
-        public readonly realeaseName: string,
+        public readonly releaseName: string,
         protected readonly chart: ChartContent,
         protected readonly namespace?: string,
     ) {}
 
-    public abstract renderValues(values: GeneralValues): Promise<Values>;
+    public abstract renderValues(values: T): Promise<Values>;
 
-    public async getRelease(values: GeneralValues): Promise<Release> {
+    public async getRelease(values: T): Promise<Release> {
         return {
-            name: this.realeaseName,
+            name: this.releaseName,
             chart: this.chart,
             namespace: this.namespace,
             values: this.mergeDefaultValues(values, await this.renderValues(values)),
@@ -38,10 +38,10 @@ export abstract class Chart {
      * Make it possible to overwrite every value.
      */
     private mergeDefaultValues(generalValues: Values, releaseValues: Values): Values {
-        if (!has(generalValues[this.realeaseName])) {
+        if (!has(generalValues[this.releaseName])) {
             return releaseValues;
         }
-        return deepMergeObject(releaseValues, generalValues[this.realeaseName]);
+        return deepMergeObject(releaseValues, generalValues[this.releaseName]);
     }
 }
 
@@ -124,7 +124,7 @@ export interface InstalledRelease {
 export class Helm {
     constructor(
         private readonly genDir: string,
-        private readonly state: KeyValueState<InstalledRelease>,
+        private readonly state: KeyValueState,
         private readonly dryRun: boolean,
         private readonly defaultNamespace: string,
     ) {
@@ -160,7 +160,7 @@ export class Helm {
             cmd+=` -f ${await this.writeValuesFile(name, values)}`;
         }
 
-        await this.state.store(name, {
+        await this.state.store<InstalledRelease>(name, {
             name,
             namespace,
             chart,

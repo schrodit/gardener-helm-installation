@@ -26,7 +26,7 @@ export const rootDir = (): string => {
 };
 
 /**
- * Returns the real path to a internal file.
+ * Returns the real path to an internal file.
  */
 export const internalFile = (filepath: string): string => {
     return path.join(rootDir(), filepath);

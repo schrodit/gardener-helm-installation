@@ -1,7 +1,11 @@
-import {Chart, ChartPath, Values} from '../../plugins/Helm';
 import {GardenerNamespace, GeneralValues} from '../../Values';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, ChartPath, Values} from '../../../../plugins/Helm';
 
-export class IdentityChart extends Chart {
+export type IdentityChartValues = VersionedValues
+    & Pick<GeneralValues, 'gardenerHost' | 'issuerUrl' | 'wildcardSecretName'>
+
+export class IdentityChart extends Chart<IdentityChartValues> {
     constructor() {
         super(
             'identity',
@@ -10,7 +14,7 @@ export class IdentityChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: IdentityChartValues): Promise<Values> {
         return {
             dashboardClientSecret: '',
             kubectlClientSecret: '',

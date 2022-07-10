@@ -1,7 +1,8 @@
-import {Chart, RemoteChart, Values} from '../../plugins/Helm';
 import {GardenSystemNamespace, GeneralValues} from '../../Values';
+import {VersionedValues} from '../../../../flow/Flow';
+import {Chart, RemoteChart, Values} from '../../../../plugins/Helm';
 
-export class CertManagerChart extends Chart {
+export class CertManagerChart extends Chart<VersionedValues> {
     constructor() {
         super(
             'cert-manager',

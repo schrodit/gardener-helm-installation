@@ -71,7 +71,7 @@ export class RawManifest extends Manifest {
 export class KubeApply {
     constructor(
         private readonly kubeClient: KubeClient,
-        private readonly state: KeyValueState<ManagedResources[]>,
+        private readonly state: KeyValueState,
         private readonly dryRun: boolean,
         private readonly defaultNamespace: string,
     ) {
@@ -81,7 +81,7 @@ export class KubeApply {
         const manifests = await manifest.getManifests();
 
         if (this.dryRun) {
-            this.state.store(manifest.name,
+            await this.state.store(manifest.name,
                 manifests.map(m => this.getRawManifest(m))
             );
             manifests.forEach(m => console.log(YAML.stringify(m)));

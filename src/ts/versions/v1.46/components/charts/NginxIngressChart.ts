@@ -1,7 +1,10 @@
-import {Chart, RemoteChart, Values} from '../../plugins/Helm';
 import {GeneralValues, GardenSystemNamespace} from '../../Values';
+import {Chart, RemoteChart, Values} from '../../../../plugins/Helm';
+import {VersionedValues} from '../../../../flow/Flow';
 
-export class NginxIngressChart extends Chart {
+export type NginxIngressChartValues = VersionedValues & Pick<GeneralValues, 'ingressHost' | 'dnsController'>
+
+export class NginxIngressChart extends Chart<NginxIngressChartValues> {
     constructor() {
         super(
             'nginx-ingress',
@@ -14,7 +17,7 @@ export class NginxIngressChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: NginxIngressChartValues): Promise<Values> {
         return {
             class: 'nginx',
             controller: {

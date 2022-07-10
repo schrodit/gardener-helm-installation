@@ -1,9 +1,9 @@
-import {Chart, ChartPath, Helm, Values} from '../plugins/Helm';
 import {GardenSystemNamespace, GeneralValues} from '../Values';
-import {KubeClient} from '../utils/KubeClient';
-import {createLogger} from '../log/Logger';
-import {Task} from '../flow/Flow';
-import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
+import {Task, VersionedValues} from '../../../flow/Flow';
+import {createLogger} from '../../../log/Logger';
+import {KubeClient} from '../../../utils/KubeClient';
+import {Chart, ChartPath, Helm, Values} from '../../../plugins/Helm';
+import {ApiServerValues, waitUntilVirtualClusterIsReady} from './VirtualCluster';
 
 const log = createLogger('GardenerInitConfig');
 
@@ -100,13 +100,15 @@ export interface ExpiringVersion {
     expirationDate: string,
 }
 
+export type GardenerInitConfigTaskValues = VersionedValues & ApiServerValues & Pick<GeneralValues, 'gardener'>;
+
 export class GardenerInitConfigTask extends Task {
 
     private virtualClient?: KubeClient;
 
     constructor(
         private readonly helm: Helm,
-        private readonly values: GeneralValues,
+        private readonly values: GardenerInitConfigTaskValues,
         private readonly dryRun: boolean,
     ) {
         super('gardener-init-config');
@@ -139,7 +141,7 @@ export class GardenerInitConfigTask extends Task {
     }
 }
 
-class GardenerInitConfigChart extends Chart {
+class GardenerInitConfigChart extends Chart<GardenerInitConfigTaskValues> {
 
     constructor() {
         super(
@@ -149,7 +151,7 @@ class GardenerInitConfigChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: GardenerInitConfigTaskValues): Promise<Values> {
         return values.gardener.initConfig;
     }
 }

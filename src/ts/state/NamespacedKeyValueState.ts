@@ -1,29 +1,19 @@
 import {KeyValueState} from './State';
 
-export class NamespacedKeyValueState<T> implements KeyValueState<T> {
+export class NamespacedKeyValueState implements KeyValueState {
 
     constructor(
-        private readonly state: KeyValueState<any>,
+        private readonly state: KeyValueState,
         private readonly namespace: string,
     ) {
     }
 
-    public async get(key: string): Promise<T | undefined> {
-        return this.state.get(this.namespacedKey(key));
+    public async get<T>(key: string): Promise<T> {
+        return this.state.get<T>(this.namespacedKey(key));
     }
 
-    public async getAll(): Promise<Record<string, T>> {
-        const values: Record<string, any> = {};
-        for (const [key, value] of Object.entries(await this.state.getAll())) {
-            if (key.startsWith(this.namespace)) {
-                values[key.slice(this.namespace.length)] = value;
-            }
-        }
-        return values;
-    }
-
-    public async store(key: string, data: T): Promise<void> {
-        await this.state.store(this.namespacedKey(key), data);
+    public async store<T>(key: string, data: T): Promise<void> {
+        await this.state.store(this.namespacedKey(key), JSON.stringify(data));
     }
 
     private namespacedKey(key: string): string {

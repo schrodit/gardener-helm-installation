@@ -2,19 +2,19 @@ import path from 'path';
 import {SemVer} from 'semver';
 import {KubeConfig, KubernetesListObject, V1Secret} from '@kubernetes/client-node';
 import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../../Values';
-import {createLogger} from '../../log/Logger';
-import {Chart, Helm, RemoteChartFromZip, Values} from '../../plugins/Helm';
-import {CharacterSet, randomString} from '../../utils/randomString';
-import {retryWithBackoff} from '../../utils/exponentialBackoffRetry';
-import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../../utils/kubernetes';
-import {KubeClient} from '../../utils/KubeClient';
-import {base64Encode} from '../../utils/base64Encode';
-import {deepMergeObject} from '../../utils/deepMerge';
-import {createSecret} from '../../state/KubernetesState';
-import {base64Decode} from '../../utils/base64Decode';
-import {waitUntilVirtualClusterIsReady} from '../VirtualCluster';
+import {ApiServerValues, waitUntilVirtualClusterIsReady} from '../VirtualCluster';
 import {Backup, SeedBackupConfig} from '../Backup';
-import {Task} from '../../flow/Flow';
+import {Task, VersionedValues} from '../../../../flow/Flow';
+import {KubeClient} from '../../../../utils/KubeClient';
+import {Chart, Helm, RemoteChartFromZip, Values} from '../../../../plugins/Helm';
+import {CharacterSet, randomString} from '../../../../utils/randomString';
+import {base64Encode} from '../../../../utils/base64Encode';
+import {retryWithBackoff} from '../../../../utils/exponentialBackoffRetry';
+import {createOrUpdate, enrichKubernetesError, isNotFoundError} from '../../../../utils/kubernetes';
+import {createLogger} from '../../../../log/Logger';
+import {base64Decode} from '../../../../utils/base64Decode';
+import {deepMergeObject} from '../../../../utils/deepMerge';
+import {createSecret} from '../../../../state/KubernetesState';
 import {GardenerChartsBasePath, GardenerRepoZipUrl} from './Gardener';
 
 const log = createLogger('Gardenlet');
@@ -35,6 +35,9 @@ const log = createLogger('Gardenlet');
     return await new InstallationManager().getSteps(comp);
 };*/
 
+export type GardenletValues = VersionedValues & ApiServerValues
+    & Pick<GeneralValues, 'gardener' | 'hostCluster' | 'ingressHost' | 'landscapeName' | 'backup'>;
+
 /**
  * Deploys the host gardenlet.
  * Based on https://github.com/gardener/gardener/blob/master/docs/deployment/deploy_gardenlet_manually.md
@@ -47,7 +50,7 @@ export class GardenletTask extends Task {
         private readonly version: SemVer,
         private readonly hostClient: KubeClient,
         private readonly helm: Helm,
-        private readonly values: GeneralValues,
+        private readonly values: GardenletValues,
         private readonly dryRun: boolean,
     ) {
         super('Gardenlet');
@@ -219,7 +222,7 @@ export class GardenletTask extends Task {
 
 }
 
-class GardenletChart extends Chart {
+class GardenletChart extends Chart<GardenletValues> {
     constructor(
         private readonly version: string,
         private readonly gardenletKubeconfig: string,
@@ -232,7 +235,7 @@ class GardenletChart extends Chart {
         );
     }
 
-    public async renderValues(values: GeneralValues): Promise<Values> {
+    public async renderValues(values: GardenletValues): Promise<Values> {
         return {
             global: {
                 gardenlet: {
@@ -250,7 +253,7 @@ class GardenletChart extends Chart {
         };
     }
 
-    private gardenletConfig(values: GeneralValues) {
+    private gardenletConfig(values: GardenletValues) {
         return {
             gardenClientConnection: {
                 bootstrapKubeconfig: {
@@ -282,7 +285,7 @@ class GardenletChart extends Chart {
         };
     }
 
-    private seedConfig(values: GeneralValues) {
+    private seedConfig(values: GardenletValues) {
         return {
             provider: {
                 type: values.hostCluster.provider,
