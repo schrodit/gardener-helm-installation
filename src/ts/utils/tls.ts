@@ -1,4 +1,5 @@
 import * as forge from 'node-forge';
+import {md} from 'node-forge';
 import {has} from './has';
 
 // todo: (schrodit) check back when eliptic curves are supported
@@ -6,6 +7,12 @@ import {has} from './has';
 // const ed25519 = forge.pki.ed25519;
 const RSA_BITS = 4096;
 const pki = forge.pki;
+
+export enum MessageDigest {
+    SHA1 = 'sha1',
+    SHA256 = 'sha256',
+    SHA384 = 'sha384',
+}
 
 export interface KeypairPEM {
     /**
@@ -23,6 +30,7 @@ export interface TLS extends KeypairPEM {
      * PEM encoded cert
      */
     cert: string,
+    messageDigest?: MessageDigest,
 }
 
 export interface CA extends TLS {
@@ -107,13 +115,14 @@ export const createSelfSignedCA = (cn: string): CA => {
             objCA: true,
         },
     ]);
-    cert.sign(keypair.privateKey);
+    cert.sign(keypair.privateKey, md.sha384.create());
 
     return {
         attributes: attrs,
         cert: pki.certificateToPem(cert),
         publicKey: pki.publicKeyToPem(keypair.publicKey),
         privateKey: pki.privateKeyToPem(keypair.privateKey),
+        messageDigest: MessageDigest.SHA384,
     };
 };
 
@@ -163,11 +172,12 @@ export const createClientTLS = (ca: CA, csr: CSR): TLS => {
     cert.setExtensions(extensions);
 
     const caPrivKey = pki.privateKeyFromPem(ca.privateKey);
-    cert.sign(caPrivKey);
+    cert.sign(caPrivKey, md.sha384.create());
 
     return {
         cert: pki.certificateToPem(cert),
         publicKey: pki.publicKeyToPem(keypair.publicKey),
         privateKey: pki.privateKeyToPem(keypair.privateKey),
+        messageDigest: MessageDigest.SHA384,
     };
 };

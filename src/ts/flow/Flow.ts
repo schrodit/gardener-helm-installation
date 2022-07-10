@@ -32,7 +32,7 @@ export interface StepInfo {
  */
 export class Flow extends EventEmitter {
 
-    private readonly steps: Step[] = [];
+    private steps: Step[] = [];
     private executing: boolean = false;
 
     constructor(
@@ -65,6 +65,8 @@ export class Flow extends EventEmitter {
                 throw new Error('Unknown step type');
             }
         }
+        this.executing = false;
+        this.steps = [];
         this.emit(StepEvents.COMPLETED);
     }
 

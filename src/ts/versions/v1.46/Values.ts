@@ -226,11 +226,13 @@ export const generateGardenerInstallationValues = async (stateValues: VersionedS
     }
 
     const apiserverTls = stateValues.apiserver.tls;
+    let updatedApiServerTls = false;
     if (!has(apiserverTls) || !has(apiserverTls?.admin, apiserverTls?.kubeControllerManager, apiserverTls?.kubeControllerManager)) {
         log.info('apiserver certs not found. Generating...');
+        updatedApiServerTls = true;
         stateValues.apiserver.tls = generateKubeApiserverCerts(GardenerNamespace, apiserverHost, gardenerHost, apiserverTls?.ca);
     }
-    if (!has(stateValues.apiserver.aggregator.tls)) {
+    if (updatedApiServerTls || !has(stateValues.apiserver.aggregator.tls)) {
         log.info('apiserver aggregator certs not found. Generating...');
         stateValues.apiserver.aggregator.tls = generateKubeAggregatorCerts();
     }
@@ -304,7 +306,7 @@ const validateInput = (input: Values): null | Error => {
     }
 };
 
-const isStateValues = (input: Values): input is StateValues => {
+export const isStateValues = (input: Values): input is StateValues => {
     return validateState(input) === null;
 };
 

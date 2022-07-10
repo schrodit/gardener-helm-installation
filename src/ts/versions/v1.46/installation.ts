@@ -58,6 +58,11 @@ export class Installation implements IInstallation {
             helmTaskFactory.createTask(new EtcdMainChart()),
             helmTaskFactory.createTask(new EtcdEventsChart()),
             helmTaskFactory.createTask(new VirtualClusterChart()),
+        );
+        await flow.execute();
+
+        // need to wait for virtual cluster creation because some steps afterwards already depend on the virtual cluster.
+        flow.addSteps(
             new ExportVirtualClusterAdminKubeconfig(
                 this.kubeClient,
                 values,
@@ -75,7 +80,6 @@ export class Installation implements IInstallation {
             helmTaskFactory.createTask(new GardenerDashboardChart(this.config.dryRun)),
             new GardenerInitConfigTask(this.helm, values, this.config.dryRun),
         );
-
         await flow.execute();
     }
 }
