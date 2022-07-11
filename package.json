@@ -1,6 +1,6 @@
 {
   "name": "gardener-installation",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "main": "lib/index.ts",
   "types": "lib/index.d.ts",
   "repository": "git@github.com:schrodit/gardener-installation.git",
