@@ -1,10 +1,10 @@
+import {has} from '@0cfg/utils-common/lib/has';
 import {Flow, VersionedValues} from '../../flow/Flow';
 import {VersionedState} from '../../Landscape';
 import {createLogger} from '../../log/Logger';
 import {Installation as Installation_1_46} from '../v1.46/installation';
 import {emptyState, isStateValues} from '../v1.46/Values';
-import {has} from "@0cfg/utils-common/lib/has";
-import {MessageDigest} from "../../utils/tls";
+import {MessageDigest} from '../../utils/tls';
 
 export const VERSION = '1.47';
 
