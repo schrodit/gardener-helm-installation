@@ -108,17 +108,18 @@ const setUp = async (config: LandscapeInstallationConfig) => {
         );
     }
 
-    const defaultValues = await readValueFiles([internalFile(defaultValuesFile)]);
+    const defaultValues = await readValueFiles(internalFile(defaultValuesFile));
     let values = mergeObjects(
         defaultValues,
         config.values ?? {},
-        await readValueFiles(config.valueFiles ?? []),
+        config.valueFiles ? await readValueFiles(...config.valueFiles) : {},
     ) as VersionedValues;
     required(values, 'version');
-    values = deepMergeObject(
-        await readValueFiles([extensionsDefaultsFile(values.version)]),
+    values = mergeObjects(
+        await readVersionedDefaults(values.version),
+        await readValueFiles(extensionsDefaultsFile(values.version)),
         values,
-    );
+    ) as VersionedValues;
 
     return {
         kubeClient,
@@ -182,11 +183,24 @@ const getCurrentState = async (newState: KeyValueState, kubeClient: KubeClient, 
 
 const extensionsDefaultsFile = (version: string): string => {
     const v = new SemVer(version);
-    const f = internalFile(path.join('src/ts/versions', `v${v.major}.${v.minor}`, extensionsValuesFile));
-    return f;
+    return internalFile(path.join('src/ts/versions', `v${v.major}.${v.minor}`, extensionsValuesFile));
 };
 
-const readValueFiles = async(valueFiles: string[]): Promise<any> => {
+const readVersionedDefaults = async (version: string): Promise<any> => {
+    const v = new SemVer(version);
+    const f = internalFile(path.join('src/ts/versions', `v${v.major}.${v.minor}`, defaultValuesFile));
+    try {
+        return await readFile(f, 'utf-8');
+    } catch (e: any) {
+        if (e.code !== 'ENOENT') {
+            throw e;
+        }
+        log.info(`No version specific default file found: ${f}`);
+        return {};
+    }
+};
+
+const readValueFiles = async(...valueFiles: string[]): Promise<any> => {
     const allValues = await Promise.all(
         valueFiles.map(path => readValues(path))
     );

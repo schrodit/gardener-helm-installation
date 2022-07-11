@@ -213,7 +213,6 @@ export class Controlplane extends Task {
                     'leaderElect': true,
                     'leaseDuration': '15s',
                     'renewDeadline': '10s',
-                    'resourceLock': 'configmaps',
                     'retryPeriod': '2s',
                 },
                 server: {

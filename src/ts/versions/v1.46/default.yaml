@@ -1,0 +1,5 @@
+
+gardener:
+
+  featureGates:
+    UseDNSRecords: true

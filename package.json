@@ -62,6 +62,8 @@
   "files": [
     "lib/**/*",
     "src/charts/**/*",
+    "src/ts/versions/**/extensions.yaml",
+    "src/ts/versions/**/default.yaml",
     "default.yaml"
   ]
 }

@@ -1,5 +1,5 @@
 
-version: v1.48.6
+version: v1.50.1
 
 landscapeName: gardener-installation
 
@@ -9,9 +9,6 @@ wildcardSecretName: gardener-wildcard-tls
 gardener:
   shootDomainPrefix: shoot
   seedCandidateDeterminationStrategy: SameRegion
-
-  featureGates:
-    UseDNSRecords: true
 
   soil:
     shootDefaultNetworks:
