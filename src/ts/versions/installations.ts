@@ -35,6 +35,7 @@ export interface InstallationConstructor {
 const versions: Record<string, InstallationConstructor> = {
     'v1.46.x': Installation_1_46,
     'v1.47.x': Installation_1_47,
+    'v1.48.x': Installation_1_47,
 };
 
 export class VersionNotFound extends Exception {

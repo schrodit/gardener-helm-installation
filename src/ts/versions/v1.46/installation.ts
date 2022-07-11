@@ -40,6 +40,7 @@ export class Installation implements IInstallation {
         if (stateValues === null) {
             stateValues = emptyState(inputValues.version);
         }
+
         const values = await generateGardenerInstallationValues(stateValues, inputValues);
         await this.state.store(values);
         log.info('Successfully stored state');

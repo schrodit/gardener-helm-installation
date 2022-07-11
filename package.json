@@ -62,7 +62,6 @@
   "files": [
     "lib/**/*",
     "src/charts/**/*",
-    "default.yaml",
-    "extensions.yaml"
+    "default.yaml"
   ]
 }

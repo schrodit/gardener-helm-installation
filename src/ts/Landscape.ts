@@ -1,7 +1,9 @@
 import {readFile} from 'fs/promises';
+import path from 'path';
 import {KubeConfig} from '@kubernetes/client-node';
 import yaml from 'yaml';
 import {has} from '@0cfg/utils-common/lib/has';
+import {SemVer} from 'semver';
 import {DefaultKubeClient} from './utils/DefaultKubeClient';
 import {LocalKeyValueState, LocalState} from './state/LocalState';
 import {KubernetesKeyValueState, KubernetesState} from './state/KubernetesState';
@@ -14,7 +16,7 @@ import {createLogger} from './log/Logger';
 import {convertStateValues, getInstallation} from './versions/installations';
 import {Flow} from './flow/Flow';
 import {KubeClient} from './utils/KubeClient';
-import {DefaultNamespace, emptyState, StateValues} from './versions/v1.46/Values';
+import {DefaultNamespace, emptyState, required, StateValues} from './versions/v1.46/Values';
 import {VERSION} from './versions/v1.46/installation';
 import {NotFound} from './utils/exceptions';
 
@@ -106,14 +108,17 @@ const setUp = async (config: LandscapeInstallationConfig) => {
         );
     }
 
-    const valueFiles = [
-        internalFile(defaultValuesFile),
-        internalFile(extensionsValuesFile),
-    ].concat(config.valueFiles ?? []);
-    const values = deepMergeObject(
+    const defaultValues = await readValueFiles([internalFile(defaultValuesFile)]);
+    let values = mergeObjects(
+        defaultValues,
         config.values ?? {},
-        await readValueFiles(valueFiles),
+        await readValueFiles(config.valueFiles ?? []),
     ) as VersionedValues;
+    required(values, 'version');
+    values = deepMergeObject(
+        await readValueFiles([extensionsDefaultsFile(values.version)]),
+        values,
+    );
 
     return {
         kubeClient,
@@ -175,6 +180,12 @@ const getCurrentState = async (newState: KeyValueState, kubeClient: KubeClient, 
     }
 };
 
+const extensionsDefaultsFile = (version: string): string => {
+    const v = new SemVer(version);
+    const f = internalFile(path.join('src/ts/versions', `v${v.major}.${v.minor}`, extensionsValuesFile));
+    return f;
+};
+
 const readValueFiles = async(valueFiles: string[]): Promise<any> => {
     const allValues = await Promise.all(
         valueFiles.map(path => readValues(path))
@@ -184,6 +195,12 @@ const readValueFiles = async(valueFiles: string[]): Promise<any> => {
         val = deepMergeObject(val, v);
     });
     return val;
+};
+
+const mergeObjects = (...objects: Values[]): Values => {
+    const r = {};
+    objects.forEach(o => deepMergeObject(r, o));
+    return r;
 };
 
 const readValues = async (path: string): Promise<any> => {

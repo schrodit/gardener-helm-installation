@@ -131,7 +131,7 @@ gardener-dashboard:
 - The new DNSRecords are not used as not all dns providers like cloudlfare are supported.
 - The host backup bucket has to be manually setup once and the provided in the values as `.backup.container`
 - Not all extensions are currently installed.
-  See the [Extension values](./extensions.yaml) for all default extensions.
+  See the [Extension values](src/ts/versions/v1.48/extensions.yaml) for all default extensions.
   Others can be added via the values.yaml.
 
 #### Known issues
