@@ -30,6 +30,7 @@ const kubeApplyStateFile = './state/kube-apply-state.yaml';
 const log = createLogger('Landscape');
 
 const stateKey = 'state';
+const inputValuesKey = 'input';
 
 export interface LandscapeInstallationConfig {
     dryRun?: boolean;
@@ -149,8 +150,9 @@ class InstallationState {
     ) {
     }
 
-    public async store<T extends VersionedState>(s: T): Promise<void> {
-        await this.state.store(stateKey, s);
+    public async store<S extends VersionedState, I extends VersionedValues>(stateValues: S, inputValues: I): Promise<void> {
+        await this.state.store(stateKey, stateValues);
+        await this.state.store(inputValuesKey, inputValues);
     }
 }
 

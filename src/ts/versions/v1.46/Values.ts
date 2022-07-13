@@ -146,6 +146,9 @@ export interface InputValues extends VersionedValues {
             blockCIDRs: string[],
             backup?: Backup,
             settings: Values,
+            gardenlet?: {
+                featureGates?: Record<string, boolean>,
+            }
         },
 
         initConfig: GardenerInitConfig,
@@ -189,7 +192,10 @@ export interface GeneralValues extends VersionedValues, InputValues {
     [key: string]: any,
 }
 
-export const generateGardenerInstallationValues = async (stateValues: VersionedState, input: Values): Promise<GeneralValues> => {
+export const generateGardenerInstallationValues = async (
+    stateValues: VersionedState,
+    input: Values,
+): Promise<GeneralValues> => {
     if (!isInputValues(input)) {
         throw validateInput(input);
     }
@@ -252,13 +258,13 @@ export const generateGardenerInstallationValues = async (stateValues: VersionedS
         stateValues.gardener.certs = generateGardenerCerts(GardenerNamespace, gardenerCerts?.ca);
     }
 
-    input = deepMergeObject(stateValues, input);
-    if (!isInputValues(input)) {
-        throw validateInput(input);
+    const values = deepMergeObject(stateValues, input);
+    if (!isInputValues(values)) {
+        throw validateInput(values);
     }
 
     const general: GeneralValues = deepMergeObject({
-        host: input.host,
+        host: values.host,
         ingressHost,
         gardenerHost,
         issuerUrl,
@@ -269,7 +275,7 @@ export const generateGardenerInstallationValues = async (stateValues: VersionedS
         dnsController: {
             class: 'garden-host',
         },
-    }, input);
+    }, values);
 
     return general;
 };
@@ -310,7 +316,7 @@ export const isStateValues = (input: Values): input is StateValues => {
     return validateState(input) === null;
 };
 
-const validateState = (input: Values): null | Error => {
+export const validateState = (input: Values): null | Error => {
     try {
         required(input, 'etcd');
         required(input, 'apiserver');

@@ -16,7 +16,7 @@ export type InstallationConfig = {
 }
 
 export interface InstallationState {
-    store<T extends VersionedState>(s: T): Promise<void>;
+    store<S extends VersionedState, I extends VersionedValues>(stateValues: S, inputValues: I): Promise<void>;
 }
 
 export interface Installation {

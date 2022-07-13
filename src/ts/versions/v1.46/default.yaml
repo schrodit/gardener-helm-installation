@@ -3,3 +3,8 @@ gardener:
 
   featureGates:
     UseDNSRecords: true
+
+  soil:
+    gardenlet:
+      featureGates:
+        CachedRuntimeClients: true

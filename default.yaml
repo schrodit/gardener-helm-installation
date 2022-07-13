@@ -6,9 +6,14 @@ landscapeName: gardener-installation
 apiserverDomainPrefix: api
 wildcardSecretName: gardener-wildcard-tls
 
+identity:
+  replicas: 1
+
 gardener:
   shootDomainPrefix: shoot
   seedCandidateDeterminationStrategy: SameRegion
+
+  featureGates: {}
 
   soil:
     shootDefaultNetworks:
@@ -16,6 +21,13 @@ gardener:
       services: 100.64.0.0/13
     blockCIDRs:
     - 169.254.169.254/32
+
+    gardenlet:
+      featureGates:
+        HVPA: true
+        ManagedIstio: true
+        APIServerSNI: true
+        ReversedVPN: true
 
     settings:
       dependencyWatchdog:

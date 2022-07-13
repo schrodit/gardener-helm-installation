@@ -267,12 +267,8 @@ class GardenletChart extends Chart<GardenletValues> {
                 },
             },
             featureGates: {
-                HVPA: true,
-                ManagedIstio: true,
-                APIServerSNI: true,
-                CachedRuntimeClients: true,
-                ReversedVPN: true,
                 ...values.gardener.featureGates,
+                ...values.gardener.soil.gardenlet?.featureGates,
             },
             seedConfig: {
                 apiVersion: 'core.gardener.cloud/v1beta1',

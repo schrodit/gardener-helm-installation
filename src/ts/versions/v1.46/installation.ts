@@ -42,7 +42,7 @@ export class Installation implements IInstallation {
         }
 
         const values = await generateGardenerInstallationValues(stateValues, inputValues);
-        await this.state.store(values);
+        await this.state.store(stateValues, inputValues);
         log.info('Successfully stored state');
 
         const helmTaskFactory = new HelmTaskFactory(values, this.helm);

@@ -2,8 +2,8 @@ import {has} from '@0cfg/utils-common/lib/has';
 import {Flow, VersionedValues} from '../../flow/Flow';
 import {VersionedState} from '../../Landscape';
 import {createLogger} from '../../log/Logger';
-import {Installation as Installation_1_47} from '../v1.46/installation';
-import {emptyState, GeneralValues, isStateValues} from '../v1.46/Values';
+import {Installation as Installation_1_47} from '../v1.47/installation';
+import {emptyState, GeneralValues, isStateValues, validateState} from '../v1.46/Values';
 
 export const VERSION = '1.50';
 
@@ -18,7 +18,7 @@ export class Installation extends Installation_1_47 {
             // with gardener version 1.50 the UseDNSRecords feature gate got dropped,
             // so we need to remove it from the state.
             if (!isStateValues(stateValues)) {
-                throw new Error('State values invalid');
+                throw validateState(stateValues);
             }
             const v = stateValues as GeneralValues;
             if (has(v.gardener?.featureGates?.['UseDNSRecords'])) {
