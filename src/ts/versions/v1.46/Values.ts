@@ -86,8 +86,14 @@ export interface InputValues extends VersionedValues {
     }
 
     identity: {
+        replicas: number,
         dashboardClientSecret: string,
         kubectlClientSecret: string,
+        connectors?: any[],
+        additionalStaticClients?: any[],
+        additionalSecrets?: any[],
+        additionalVolumes?: any[],
+        additionalVolumeMounts?: any[],
         [key: string]: any,
     }
 
