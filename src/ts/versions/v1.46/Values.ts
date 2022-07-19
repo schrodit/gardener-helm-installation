@@ -14,6 +14,7 @@ import {DNSValues} from './components/DNS';
 import {GardenerExtension} from './components/GardenerExtensions';
 import {GardenerInitConfig} from './components/GardenerInitConfig';
 import {Backup, GardenBackup} from './components/Backup';
+import {deepCopy} from "@0cfg/utils-common/lib/deepCopy";
 
 const log = createLogger('Values');
 
@@ -94,6 +95,7 @@ export interface InputValues extends VersionedValues {
         additionalSecrets?: any[],
         additionalVolumes?: any[],
         additionalVolumeMounts?: any[],
+        staticPasswords?: any[],
         [key: string]: any,
     }
 
@@ -102,7 +104,9 @@ export interface InputValues extends VersionedValues {
         [key: string]: any,
     }
 
-    dns: DNSValues,
+    dns: DNSValues & {
+        additionalDNSNames?: string[],
+    },
 
     acme: {
         email: string,
@@ -231,6 +235,10 @@ export const generateGardenerInstallationValues = async (
         stateValues['gardener-dashboard'].sessionSecret,
         30,
     );
+    // remove state values that should not be in state
+    if (has((stateValues as any).identity.staticPasswords)) {
+        delete (stateValues as any).identity.staticPasswords;
+    }
 
     if (!has(stateValues.etcd.tls)) {
         log.info('etcd certs not found. Generating...');
@@ -264,7 +272,7 @@ export const generateGardenerInstallationValues = async (
         stateValues.gardener.certs = generateGardenerCerts(GardenerNamespace, gardenerCerts?.ca);
     }
 
-    const values = deepMergeObject(stateValues, input);
+    const values = deepMergeObject(deepCopy(stateValues), input);
     if (!isInputValues(values)) {
         throw validateInput(values);
     }

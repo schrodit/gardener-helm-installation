@@ -21,6 +21,7 @@ resources:
   requests:
     cpu: 100m
     memory: 64Mi
+
 issuerUrl: https://identity.ingress.example.org
 
 ingress:
@@ -41,6 +42,10 @@ kubectlClientSecret: if6ji0dTFE4rQfj8
 additionalVolumes: ~
 additionalVolumeMounts: ~
 additionalSecrets: ~
+
+additionalHosts: ~
+# - host: example.com
+#   tlsSecret: "" # optional
 
 additionalStaticClients: ~
 # - name: additional identity example client

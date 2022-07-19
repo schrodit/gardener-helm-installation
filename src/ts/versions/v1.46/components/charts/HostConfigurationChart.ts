@@ -1,3 +1,4 @@
+import {has} from '@0cfg/utils-common/lib/has';
 import {DNS, nonRedundantDnsNames} from '../DNS';
 import {GardenerNamespace, GardenSystemNamespace, GeneralValues} from '../../Values';
 import {VersionedValues} from '../../../../flow/Flow';
@@ -34,11 +35,13 @@ export class HostConfigurationChart extends Chart<HostConfigurationChartValues> 
                 `*.${values.ingressHost}`,
                 values.gardenerHost,
                 values.apiserver.host,
+                ...(has(values.dns.additionalDNSNames) ? values.dns.additionalDNSNames : []),
             ]),
             includesDnsNames: [
                 values.ingressHost,
                 values.gardenerHost,
                 values.apiserver.host,
+                ...(has(values.dns.additionalDNSNames) ? values.dns.additionalDNSNames : []),
             ],
 
             providerType: values.dns.provider,

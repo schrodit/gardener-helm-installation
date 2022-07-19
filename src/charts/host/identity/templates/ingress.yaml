@@ -23,11 +23,38 @@ spec:
     - secretName: {{ .Values.tlsSecretName | default "identity-tls" }}
       hosts:
         - {{ $hostname }}
+{{- range .Values.additionalHosts  }}
+{{- if not .tlsSecret }}
+        - {{ .host }}
+{{- end }}
+{{- end }}
+{{- range .Values.additionalHosts  }}
+{{- if .tlsSecret }}
+    - secretName: {{ .tlsSecretName }}
+      hosts:
+        - {{ .host }}
+{{- end }}
+{{- end }}
   rules:
     - host: {{ $hostname }}
       http:
         paths:
-          - backend:
-              serviceName: identity-service
-              servicePort: {{ $.Values.servicePort }}
-            path: "{{ $pathname }}"
+        - path: "{{ $pathname }}"
+          pathType: "Prefix"
+          backend:
+            service:
+              name: identity-service
+              port:
+                number: {{ $.Values.servicePort }}
+{{- range .Values.additionalHosts  }}
+    - host: {{ .host }}
+      http:
+        paths:
+        - path: "{{ $pathname }}"
+          pathType: "Prefix"
+          backend:
+            service:
+              name: identity-service
+              port:
+                number: {{ $.Values.servicePort }}
+{{- end }}
