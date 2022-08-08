@@ -215,21 +215,32 @@ export class Controlplane extends Task {
                     'renewDeadline': '10s',
                     'retryPeriod': '2s',
                 },
-                server: {
-                    http: {
-                        bindAddress: '0.0.0.0',
-                        port: 2718,
-                    },
-                    https: {
-                        bindAddress: '0.0.0.0',
-                        port: 2719,
-                        tls: {
-                            caBundle: this.values.gardener.certs.ca.cert,
-                            crt: this.values.gardener.certs.controllerManager.cert,
-                            key: this.values.gardener.certs.controllerManager.privateKey,
+                server: this.version.compare('1.52.0') >= 0 ?
+                    {
+                        http: {
+                            bindAddress: '0.0.0.0',
+                            port: 2718,
+                        },
+                        https: {
+                            bindAddress: '0.0.0.0',
+                            port: 2719,
+                            tls: {
+                                caBundle: this.values.gardener.certs.ca.cert,
+                                crt: this.values.gardener.certs.controllerManager.cert,
+                                key: this.values.gardener.certs.controllerManager.privateKey,
+                            },
+                        },
+                    }
+                    : {
+                        healthProbes: {
+                            bindAddress: '0.0.0.0',
+                            port: 2718,
+                        },
+                        metrics: {
+                            bindAddress: '0.0.0.0',
+                            port: 2719,
                         },
                     },
-                },
             },
         }, this.values.gardener.admission);
     }
