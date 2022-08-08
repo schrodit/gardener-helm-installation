@@ -34,7 +34,7 @@ spec:
         checksum/secret-kube-aggregator-client: {{ include (print $.Template.BasePath "/secret-kube-aggregator-client-tls.yaml") . | sha256sum }}
         checksum/secret-kube-apiserver-ca: {{ include (print $.Template.BasePath "/secret-kube-apiserver-ca.yaml") . | sha256sum }}
         checksum/secret-kube-apiserver-server: {{ include (print $.Template.BasePath "/secret-kube-apiserver-server-tls.yaml") . | sha256sum }}
-        checksum/secret-kube-apiserver-basic-auth: {{ include (print $.Template.BasePath "/secret-kube-apiserver-basic-auth.yaml") . | sha256sum }}
+        checksum/secret-kube-apiserver-basic-auth: {{ include (print $.Template.BasePath "/secret-kube-apiserver-static-token.yaml") . | sha256sum }}
         checksum/secret-service-account-key: {{ include (print $.Template.BasePath "/secret-service-account-key.yaml") . | sha256sum }}
         {{- if .Values.tls.identity.ca }}
         checksum/secret-identity-ca: {{ include (print $.Template.BasePath "/secret-identity-ca.yaml") . | sha256sum }}
@@ -75,17 +75,15 @@ spec:
         operator: Exists
       containers:
       - name: kube-apiserver
-        image: {{ index .Values.images "hyperkube" }}
+        image: {{ .Values.images.repositories.apiserver }}:{{ .Values.images.tag }}
         imagePullPolicy: IfNotPresent
         command:
-        - /hyperkube
-        - kube-apiserver
+        - /usr/local/bin/kube-apiserver
         - --enable-admission-plugins=Priority,NamespaceLifecycle,LimitRanger,PodSecurityPolicy,ServiceAccount,NodeRestriction,DefaultStorageClass,DefaultTolerationSeconds,ResourceQuota,StorageObjectInUseProtection,MutatingAdmissionWebhook,ValidatingAdmissionWebhook
         - --disable-admission-plugins=PersistentVolumeLabel
         - --allow-privileged=true
         - --anonymous-auth=false
         - --authorization-mode=Node,RBAC
-        - --basic-auth-file=/srv/kubernetes/auth/basic_auth.csv
         - --client-ca-file=/srv/kubernetes/ca/ca.crt
         - --enable-aggregator-routing=true
         - --enable-bootstrap-token-auth=true
@@ -96,6 +94,7 @@ spec:
 {{ if .Values.etcd.events.endpoints }}
         - --etcd-servers-overrides=/events#{{ .Values.etcd.events.endpoints }},coordination.k8s.io/leases#{{ .Values.etcd.events.endpoints }}
 {{ end }}
+        - --external-hostname={{ .Values.apiServer.hostname }}
         - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
         - --insecure-port=0
 {{ if .Values.apiServer.oidcIssuerURL }}
@@ -106,7 +105,7 @@ spec:
         {{- if .Values.tls.identity.ca }}
         - --oidc-ca-file=/srv/kubernetes/identity-ca/ca.crt
         {{- end }}
-{{ end }}
+{{- end }}
         - --profiling=false
         - --proxy-client-cert-file=/srv/kubernetes/aggregator/tls.crt
         - --proxy-client-key-file=/srv/kubernetes/aggregator/tls.key
@@ -116,10 +115,16 @@ spec:
         - --requestheader-username-headers=X-Remote-User
         - --secure-port=443
         - --service-cluster-ip-range=100.64.0.0/13
-        - --service-account-key-file=/srv/kubernetes/service-account-key/service_account.key
+{{- if semverCompare ">= 1.19" .Values.images.tag }}
+        - --service-account-issuer=https://{{ .Values.apiServer.hostname }}
+        - --api-audiences=kubernetes,gardener
+        - --service-account-signing-key-file=/srv/kubernetes/service-account-key/service_account.key
+{{- end }}
+        - --service-account-key-file=/srv/kubernetes/service-account-key/service_account.crt
         - --tls-cert-file=/srv/kubernetes/apiserver/tls.crt
         - --tls-private-key-file=/srv/kubernetes/apiserver/tls.key
         - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+        - --token-auth-file=/srv/kubernetes/token/static_tokens.csv
         - --v=2
         livenessProbe:
           httpGet:
@@ -128,7 +133,7 @@ spec:
             port: 443
             httpHeaders:
             - name: Authorization
-              value: Basic {{ printf "admin:%s" .Values.tls.kubeAPIServer.basicAuthPassword | b64enc }}
+              value: Bearer {{ .Values.tls.kubeAPIServer.staticTokens.healthCheck }}
           successThreshold: 1
           failureThreshold: 3
           initialDelaySeconds: 15
@@ -141,7 +146,7 @@ spec:
             port: 443
             httpHeaders:
             - name: Authorization
-              value: Basic {{ printf "admin:%s" .Values.tls.kubeAPIServer.basicAuthPassword | b64enc }}
+              value: Bearer {{ .Values.tls.kubeAPIServer.staticTokens.healthCheck }}
           successThreshold: 1
           failureThreshold: 3
           initialDelaySeconds: 10
@@ -173,8 +178,8 @@ spec:
           mountPath: /srv/kubernetes/apiserver
         - name: service-account-key
           mountPath: /srv/kubernetes/service-account-key
-        - name: kube-apiserver-basic-auth
-          mountPath: /srv/kubernetes/auth
+        - name: kube-apiserver-static-token
+          mountPath: /srv/kubernetes/token
         - name: kube-aggregator
           mountPath: /srv/kubernetes/aggregator
         {{- if .Values.tls.identity.ca }}
@@ -209,9 +214,9 @@ spec:
       - name: etcd-client-tls
         secret:
           secretName: {{ .Values.etcd.secretNames.client | default "garden-etcd-client" }}
-      - name: kube-apiserver-basic-auth
+      - name: kube-apiserver-static-token
         secret:
-          secretName: garden-kube-apiserver-basic-auth
+          secretName: garden-kube-apiserver-static-token
       - name: service-account-key
         secret:
           secretName: garden-service-account-key

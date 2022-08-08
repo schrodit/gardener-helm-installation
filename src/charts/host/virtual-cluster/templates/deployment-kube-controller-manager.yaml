@@ -53,11 +53,10 @@ spec:
         operator: Exists
       containers:
       - name: kube-controller-manager
-        image: {{ index .Values.images "hyperkube" }}
+        image: {{ index .Values.images.repositories "controller-manager" }}:{{ .Values.images.tag }}
         imagePullPolicy: IfNotPresent
         command:
-        - /hyperkube
-        - kube-controller-manager
+        - /usr/local/bin/kube-controller-manager
         - --cluster-signing-cert-file=/srv/kubernetes/ca/ca.crt
         - --cluster-signing-key-file=/srv/kubernetes/ca/ca.key
         - --controllers=namespace,serviceaccount,serviceaccount-token,clusterrole-aggregation,garbagecollector,csrapproving,csrcleaner,csrsigning,bootstrapsigner,tokencleaner,resourcequota

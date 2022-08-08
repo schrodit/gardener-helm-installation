@@ -1,4 +1,5 @@
 import validator from 'validator';
+import {deepCopy} from '@0cfg/utils-common/lib/deepCopy';
 import {generateKey, KeypairPEM} from '../../utils/tls';
 import {Values} from '../../plugins/Helm';
 import {deepMergeObject} from '../../utils/deepMerge';
@@ -14,7 +15,6 @@ import {DNSValues} from './components/DNS';
 import {GardenerExtension} from './components/GardenerExtensions';
 import {GardenerInitConfig} from './components/GardenerInitConfig';
 import {Backup, GardenBackup} from './components/Backup';
-import {deepCopy} from "@0cfg/utils-common/lib/deepCopy";
 
 const log = createLogger('Values');
 
@@ -40,6 +40,7 @@ export interface StateValues extends VersionedValues {
     apiserver: {
         tls?: KubeApiserverCertificates,
         accountKey?: KeypairPEM,
+        version?: string,
         admin: {
             basicAuthPassword?: string,
         }
@@ -117,6 +118,7 @@ export interface InputValues extends VersionedValues {
     apiserver: {
         tls: KubeApiserverCertificates,
         accountKey: KeypairPEM,
+        version?: string,
         admin: {
             basicAuthPassword: string,
         }
@@ -184,7 +186,7 @@ export interface GeneralValues extends VersionedValues, InputValues {
     apiserver: {
         host: string,
         url: string,
-
+        version?: string,
         tls: KubeApiserverCertificates,
         accountKey: KeypairPEM,
         admin: {

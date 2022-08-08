@@ -22,6 +22,10 @@ export class VirtualClusterChart extends Chart<VirtualClusterChartValues> {
                 oidcIssuerURL: values.issuerUrl,
             },
 
+            images: {
+                tag: values.apiserver.version ?? 'v1.18.3',
+            },
+
             tls: {
                 kubeAPIServer: {
                     ca: {
@@ -32,7 +36,9 @@ export class VirtualClusterChart extends Chart<VirtualClusterChartValues> {
                         crt: values.apiserver.tls.server.cert,
                         key: values.apiserver.tls.server.privateKey,
                     },
-                    basicAuthPassword: values.apiserver.admin.basicAuthPassword,
+                    staticTokens: {
+                        healthCheck: values.apiserver.admin.basicAuthPassword,
+                    },
                 },
                 kubeAggregator: {
                     ca: {
@@ -52,7 +58,10 @@ export class VirtualClusterChart extends Chart<VirtualClusterChartValues> {
                     crt: values.apiserver.tls.kubeControllerManager.cert,
                     key: values.apiserver.tls.kubeControllerManager.privateKey,
                 },
-                serviceAccountKey: values.apiserver.accountKey.privateKey,
+                serviceAccount: {
+                    key: values.apiserver.accountKey.privateKey,
+                    crt: values.apiserver.accountKey.publicKey,
+                },
             },
             etcd: {
                 main: {

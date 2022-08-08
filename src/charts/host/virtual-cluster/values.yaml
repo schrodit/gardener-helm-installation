@@ -15,7 +15,10 @@
 namespace: xxx
 serviceName: garden-kube-apiserver
 images:
-  hyperkube: k8s.gcr.io/hyperkube:v1.18.3
+  repositories:
+    apiserver: 'k8s.gcr.io/kube-apiserver'
+    controller-manager: 'k8s.gcr.io/kube-controller-manager'
+  tag: v1.18.3
 
 
 apiServer:
@@ -35,12 +38,15 @@ tls:
     server:
       crt: server-certificate
       key: server-key
-    basicAuthPassword: password
+    staticTokens:
+      healthCheck:
   kubeControllerManager:
     crt: client-certificate
     key: client-key
   admin:
     crt: client-certificate
     key: client-key
-  serviceAccountKey: key
+  serviceAccount:
+#    key:
+#    crt:
   identity: {}

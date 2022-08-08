@@ -8,3 +8,6 @@ gardener:
     gardenlet:
       featureGates:
         CachedRuntimeClients: true
+
+apiserver:
+  version: v1.18.3
