@@ -20,6 +20,7 @@ export class DnsControllerChart extends Chart<DnsControllerChartValues> {
             createCRDs: true,
             configuration: {
                 dnsClass: values.dnsController.class,
+                disableNamespaceRestriction: true,
             },
             gardener: {
                 seed: {
