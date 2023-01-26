@@ -6,12 +6,24 @@ gardener:
       version: v1.12.0
       controllerRegistration:
         repositoryName: gardener-extension-os-coreos
+    
+    os-ubuntu:
+      enabled: true
+      version: v1.18.0
+      controllerRegistration:
+        repositoryName: gardener-extension-os-ubuntu
 
     provider-gcp:
       enabled: true
       version: v1.23.1
       controllerRegistration:
         repositoryName: gardener-extension-provider-gcp
+
+    provider-openstack:
+      enabled: true
+      version: v1.29.0
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-openstack
 
     provider-dns-cloudflare:
       enabled: true

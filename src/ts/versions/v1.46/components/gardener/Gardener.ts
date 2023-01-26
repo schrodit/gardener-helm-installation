@@ -1,7 +1,6 @@
 import path from 'path';
 import {SemVer} from 'semver';
 import {createLogger} from '../../../../log/Logger';
-import {BaseVersion} from '../../../../flow/BaseComponent';
 import {trimPrefix} from '../../../../utils/trimPrefix';
 import {CA, createClientTLS, createSelfSignedCA, defaultExtensions, TLS} from '../../../../utils/tls';
 import {KubeClient} from '../../../../utils/KubeClient';
