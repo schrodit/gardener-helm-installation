@@ -1,0 +1,97 @@
+
+gardener:
+  extensions:
+    os-coreos:
+      enabled: true
+      version: v1.15.0
+      controllerRegistration:
+        repositoryName: gardener-extension-os-coreos
+    
+    os-ubuntu:
+      enabled: true
+      version: v1.19.0
+      controllerRegistration:
+        repositoryName: gardener-extension-os-ubuntu
+
+    provider-gcp:
+      enabled: true
+      version: v1.26.1
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-gcp
+
+    provider-openstack:
+      enabled: true
+      version: v1.31.0
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-openstack
+
+    provider-dns-cloudflare:
+      enabled: true
+      version: v0.0.2
+      controllerRegistration:
+        org: schrodit
+        repositoryName: gardener-extension-provider-dns-cloudflare
+
+    external-dns:
+      enabled: true
+      version: v0.15.0
+      controllerRegistration:
+        repositoryName: external-dns-management
+        path: /examples/controller-registration.yaml
+
+      values:
+        configuration:
+          controllers: dnscontrollers
+
+    provider-equinix:
+      enabled: true
+      version: v2.5.0
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-equinix-metal
+      values:
+        imageVectorOverwrite: |
+          images:
+          - name: machine-controller-manager-provider-equinix-metal
+            sourceRepository: github.com/gardener/machine-controller-manager-provider-equinix-metal
+            repository: ghcr.io/schrodit/gardener/extensions/machine-controller-manager-provider-equinix-metal
+            tag: v0.6.0-dev
+
+    networking-cilium:
+      enabled: true
+      version: v1.20.1
+      controllerRegistration:
+        repositoryName: gardener-extension-networking-cilium
+
+    networking-calico:
+      enabled: true
+      version: v1.26.0
+      controllerRegistration:
+        repositoryName: gardener-extension-networking-calico
+
+    shoot-dns-service:
+      enabled: true
+      global: true
+
+      version: v1.26.0
+      controllerRegistration:
+        repositoryName: gardener-extension-shoot-dns-service
+
+      values:
+        dnsProviderReplication:
+          enabled: true
+
+    shoot-cert-service:
+      enabled: true
+      global: true
+
+      version: v1.25.0
+      controllerRegistration:
+        repositoryName: gardener-extension-shoot-cert-service
+
+      values:
+        certificateConfig:
+          defaultIssuer:
+            acme:
+              email: foo@example.com
+              server: https://acme-v02.api.letsencrypt.org/directory
+            name: default-issuer
