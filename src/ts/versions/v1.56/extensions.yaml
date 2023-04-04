@@ -64,7 +64,7 @@ gardener:
 
     networking-calico:
       enabled: true
-      version: v1.27.1
+      version: v1.28.0
       controllerRegistration:
         repositoryName: gardener-extension-networking-calico
 

@@ -65,7 +65,7 @@ export class GardenletTask extends Task {
 
         const gardenletKubeConfig = await this.initialGardenletKubeconfig(await this.createBoostrapSecret());
         const gardenletChart = new GardenletChart(
-            this.version.raw,
+            this.version,
             gardenletKubeConfig.exportConfig(),
             await this.getBackupConfig());
         await this.helm.createOrUpdate(await gardenletChart.getRelease(this.values));
@@ -224,33 +224,37 @@ export class GardenletTask extends Task {
 
 class GardenletChart extends Chart<GardenletValues> {
     constructor(
-        private readonly version: string,
+        private readonly version: SemVer,
         private readonly gardenletKubeconfig: string,
         private readonly backupConfig?: SeedBackupConfig,
     ) {
         super(
             'gardenlet',
-            new RemoteChartFromZip(GardenerRepoZipUrl(version), path.join(GardenerChartsBasePath(version), 'gardenlet')),
+            new RemoteChartFromZip(GardenerRepoZipUrl(version.raw), path.join(GardenerChartsBasePath(version.raw), 'gardenlet')),
             GardenerNamespace,
         );
     }
 
     public async renderValues(values: GardenletValues): Promise<Values> {
-        return {
-            global: {
-                gardenlet: {
-                    image: {
-                        tag: this.version,
-                    },
-                    config: this.gardenletConfig(values),
-                },
-                deployment: {
-                    virtualGarden: {
-                        enabled: true,
-                    },
-                },
+        const v: Values = {
+            image: {
+                tag: this.version.raw,
             },
+            config: this.gardenletConfig(values),
         };
+        if (this.version.compare('1.59.0') === -1) {
+            return {
+                global: {
+                    gardenlet: v,
+                    deployment: {
+                        virtualGarden: {
+                            enabled: true,
+                        },
+                    },
+                },
+            };
+        }
+        return v;
     }
 
     private gardenletConfig(values: GardenletValues) {
