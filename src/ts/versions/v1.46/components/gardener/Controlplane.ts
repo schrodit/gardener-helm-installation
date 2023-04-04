@@ -246,7 +246,7 @@ export class Controlplane extends Task {
     }
 
     private admissionValues() {
-        return deepMergeObject({
+        const v = {
             enabled: true,
             kubeconfig: 'dummy',
             image: {
@@ -263,7 +263,7 @@ export class Controlplane extends Task {
                     burst: 130,
                 },
                 server: {
-                    https: {
+                    webhooks: {
                         bindAddress: '0.0.0.0',
                         port: 2719,
                         tls: {
@@ -274,7 +274,12 @@ export class Controlplane extends Task {
                     },
                 },
             },
-        }, this.values.gardener.controller);
+        } as Values;
+        if (this.version.compare('1.57.0') === -1) {
+            v.config.server.https = v.config.server.webhooks;
+            delete v.config.server.webhooks;
+        }
+        return deepMergeObject(v, this.values.gardener.admission);
     }
 
     private schedulerValues(): Values {
