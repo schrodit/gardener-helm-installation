@@ -15,19 +15,19 @@ gardener:
 
     provider-gcp:
       enabled: true
-      version: v1.26.1
+      version: v1.27.1
       controllerRegistration:
         repositoryName: gardener-extension-provider-gcp
 
     provider-openstack:
       enabled: true
-      version: v1.31.0
+      version: v1.31.4
       controllerRegistration:
         repositoryName: gardener-extension-provider-openstack
 
     provider-dns-cloudflare:
       enabled: true
-      version: v0.0.2
+      version: v0.0.3
       controllerRegistration:
         org: schrodit
         repositoryName: gardener-extension-provider-dns-cloudflare
