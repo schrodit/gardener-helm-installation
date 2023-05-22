@@ -50,6 +50,7 @@ export interface StateValues extends VersionedValues {
     },
 
     gardener: {
+        extensions?: Record<string, GardenerExtension>,
         certs?: GardenerCertificates,
     }
 }
