@@ -259,6 +259,7 @@ class GardenletChart extends Chart<GardenletValues> {
 
     private gardenletConfig(values: GardenletValues) {
         return {
+            ...values.gardener.soil.gardenlet,
             gardenClientConnection: {
                 bootstrapKubeconfig: {
                     name: 'gardenlet-kubeconfig-bootstrap',

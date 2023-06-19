@@ -1,5 +1,5 @@
 
-version: v1.62.3
+version: v1.63.2
 
 landscapeName: gardener-installation
 
@@ -23,6 +23,13 @@ gardener:
     - 169.254.169.254/32
 
     gardenlet:
+      logging:
+        enabled: true
+        shootNodeLogging:
+          shootPurposes:
+          - "infrastructure"
+          - "production"
+          - "development"
       featureGates:
         HVPA: true
         ManagedIstio: true
