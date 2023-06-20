@@ -65,13 +65,35 @@ gardener:
       enabled: true
       global: true
 
-      version: v1.28.1
+      version: v1.32.1
       controllerRegistration:
         repositoryName: gardener-extension-shoot-dns-service
 
       values:
         dnsProviderReplication:
           enabled: true
+        dnsProviderManagement:
+          enabled: true
+        dnsControllerManager:
+          image:
+            repository: eu.gcr.io/gardener-project/dns-controller-manager
+            tag: v0.13.3
+          configuration:
+            cacheTtl: 300
+            controllers: dnscontrollers,dnssources
+            dnsPoolResyncPeriod: 30m
+            #poolSize: 20
+            #providersPoolResyncPeriod: 24h
+            serverPortHttp: 8080
+          createCRDs: false
+          deploy: true
+          replicaCount: 1
+          #resources:
+          #  limits:
+          #    memory: 1Gi
+          #  requests:
+          #    cpu: 50m
+          #    memory: 500Mi
 
     shoot-cert-service:
       enabled: true
