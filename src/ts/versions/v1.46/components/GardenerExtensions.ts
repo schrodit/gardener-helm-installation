@@ -10,7 +10,7 @@ import {Flow, Task} from '../../../flow/Flow';
 import {KubeClient} from '../../../utils/KubeClient';
 import {DownloadManager} from '../../../utils/DownloadManager';
 import {RawManifest} from '../../../plugins/KubeApply';
-import {isV1Beta1ControllerRegistration, V1Beta1ControllerRegistration} from '../../../api/ControllerRegistration';
+import {isV1Beta1ControllerRegistration, LabelSelector, V1Beta1ControllerRegistration} from '../../../api/ControllerRegistration';
 import {isV1Beta1DeploymentRegistration, V1Beta1ControllerDeployment} from '../../../api/ControllerDeployment';
 import {deepMergeObject} from '../../../utils/deepMerge';
 import {trimPrefix} from '../../../utils/trimPrefix';
@@ -21,9 +21,11 @@ const log = createLogger('GardenerExtensions');
 export interface GardenerExtension {
     enabled?: boolean,
     global?: boolean,
+    primary?: boolean,
     version: string,
     controllerRegistration: RepositoryControllerRegistration,
     values?: Values,
+    seedSelector?: LabelSelector,
 }
 
 export const GardenerExtensions = async (
@@ -111,8 +113,12 @@ export class GardenerExtensionsTask extends Task {
         reg.deployment.providerConfig.values = deepMergeObject(reg.deployment.providerConfig.values, this.getDeploymentValues(extension));
 
         for (const i in reg.registration.spec.resources) {
+            if (extension.primary === false) {
+                reg.registration.spec.resources[i].primary = false;
+            }
             reg.registration.spec.resources[i].globallyEnabled = extension.global;
         }
+        reg.registration.spec.deployment.seedSelector = extension.seedSelector;
 
         return reg;
     }

@@ -9,15 +9,27 @@ export interface V1Beta1ControllerRegistration extends KubernetesObject {
     spec: {
         deployment: {
             deploymentRefs: string[],
+            seedSelector?: LabelSelector,
         },
         resources: V1Beta1ControllerRegistrationResource[],
     },
+}
+
+export type LabelSelector = {
+    matchExpressions: LabelSelectorExpression[],
+}
+
+export type LabelSelectorExpression = {
+    key: string,
+    operator: string,
+    values: string[],
 }
 
 export interface V1Beta1ControllerRegistrationResource {
     kind: string,
     type: string,
     globallyEnabled?: boolean,
+    primary?: boolean,
 }
 
 export const isV1Beta1ControllerRegistration = (obj: KubernetesObject): obj is V1Beta1ControllerRegistration => {

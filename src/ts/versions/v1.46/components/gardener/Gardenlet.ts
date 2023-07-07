@@ -3,7 +3,7 @@ import {SemVer} from 'semver';
 import {KubeConfig, KubernetesListObject, V1Secret} from '@kubernetes/client-node';
 import {GardenerNamespace, GeneralValues, KubeSystemNamespace} from '../../Values';
 import {ApiServerValues, waitUntilVirtualClusterIsReady} from '../VirtualCluster';
-import {Backup, SeedBackupConfig} from '../Backup';
+import {Backup, SeedBackupConfig, SecretRef} from '../Backup';
 import {Task, VersionedValues} from '../../../../flow/Flow';
 import {KubeClient} from '../../../../utils/KubeClient';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../../../../plugins/Helm';
@@ -16,6 +16,7 @@ import {base64Decode} from '../../../../utils/base64Decode';
 import {deepMergeObject} from '../../../../utils/deepMerge';
 import {createSecret} from '../../../../state/KubernetesState';
 import {GardenerChartsBasePath, GardenerRepoZipUrl} from './Gardener';
+import { DNS } from '../DNS';
 
 const log = createLogger('Gardenlet');
 
@@ -36,7 +37,7 @@ const log = createLogger('Gardenlet');
 };*/
 
 export type GardenletValues = VersionedValues & ApiServerValues
-    & Pick<GeneralValues, 'gardener' | 'hostCluster' | 'ingressHost' | 'landscapeName' | 'backup'>;
+    & Pick<GeneralValues, 'dns' | 'gardener' | 'hostCluster' | 'ingressHost' | 'landscapeName' | 'backup'>;
 
 /**
  * Deploys the host gardenlet.
@@ -67,6 +68,7 @@ export class GardenletTask extends Task {
         const gardenletChart = new GardenletChart(
             this.version,
             gardenletKubeConfig.exportConfig(),
+            await this.createDnsSecret(),
             await this.getBackupConfig());
         await this.helm.createOrUpdate(await gardenletChart.getRelease(this.values));
 
@@ -220,12 +222,42 @@ export class GardenletTask extends Task {
         };
     }
 
+    private async createDnsSecret(): Promise<SecretRef> {
+        if (!this.virtualClient) {
+            throw new Error('Virtual cluster missing');
+        }
+
+        const name = 'soil-dns-secret';
+        const secret = createSecret(GardenerNamespace, name);
+        log.info(`Creating soil dns secret "${name}"`);
+        await retryWithBackoff(async (): Promise<boolean> => {
+            if (this.dryRun) {
+                return true;
+            }
+            try {
+                await createOrUpdate(this.virtualClient!, secret, async (): Promise<void> => {
+                    secret.stringData = this.values.dns.credentials;
+                });
+                return true;
+            } catch (error) {
+                log.error(enrichKubernetesError(secret, error));
+            }
+            return false;
+        });
+
+        return {
+            name,
+            namespace: GardenerNamespace,
+        };
+    }
+
 }
 
 class GardenletChart extends Chart<GardenletValues> {
     constructor(
         private readonly version: SemVer,
         private readonly gardenletKubeconfig: string,
+        private readonly dnsSecret: SecretRef,
         private readonly backupConfig?: SeedBackupConfig,
     ) {
         super(
@@ -301,7 +333,16 @@ class GardenletChart extends Chart<GardenletValues> {
             },
             backup: this.backupConfig,
             dns: {
-                ingressDomain: `host.${values.ingressHost}`,
+                provider: {
+                    type: values.dns.provider,
+                    secretRef: this.dnsSecret,
+                },
+            },
+            ingress: {
+                domain: `host.${values.ingressHost}`,
+                controller: {
+                    kind: 'nginx',
+                },
             },
             settings: values.gardener.soil.settings,
         };

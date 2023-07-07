@@ -12,7 +12,7 @@ type DnsMappingFunc = (values: DNSValues) => Values;
 /**
  * Maps the dns controller dns provider to the cert-bot dns01 challenge
  */
- const dnsProviderMapping: Record<string, DnsMappingFunc> = {
+const dnsProviderMapping: Record<string, DnsMappingFunc> = {
     'cloudflare-dns': (_: DNSValues): Values => {
         return {
             cloudflare: {

@@ -14,8 +14,10 @@ export interface SeedBackupConfig {
     provider: string,
     providerConfig?: unknown,
     region: string,
-    secretRef: {
-        name: string,
-        namespace: string,
-    }
+    secretRef: SecretRef,
 }
+
+export type SecretRef = {
+    name: string,
+    namespace: string,
+};
