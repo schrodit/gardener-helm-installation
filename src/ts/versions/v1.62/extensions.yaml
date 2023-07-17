@@ -48,6 +48,12 @@ gardener:
             sourceRepository: github.com/gardener/machine-controller-manager-provider-equinix-metal
             repository: ghcr.io/schrodit/gardener/extensions/machine-controller-manager-provider-equinix-metal
             tag: v0.6.0-dev
+          - name: metallb-speaker
+            repository: quay.io/metallb/speaker
+            tag: v0.12.1
+          - name: metallb-controller
+            repository: quay.io/metallb/controller
+            tag: v0.12.1
 
     networking-cilium:
       enabled: true
