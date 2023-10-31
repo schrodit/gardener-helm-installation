@@ -1,5 +1,5 @@
 
-version: v1.68.1
+version: v1.70.3
 
 landscapeName: gardener-installation
 
@@ -32,9 +32,7 @@ gardener:
           - "development"
       featureGates:
         HVPA: true
-        ManagedIstio: true
         APIServerSNI: true
-        ReversedVPN: true
 
     settings:
       dependencyWatchdog:

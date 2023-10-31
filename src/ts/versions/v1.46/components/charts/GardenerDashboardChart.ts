@@ -7,7 +7,7 @@ import {createLogger} from '../../../../log/Logger';
 
 const log = createLogger('GardenerDashboard');
 
-const version = '1.55.1';
+const version = '1.70.1';
 
 const repoZipUrl = (version: string) =>
     `https://github.com/gardener/dashboard/archive/refs/tags/${version}.zip`;
@@ -40,25 +40,30 @@ export class GardenerDashboardChart extends Chart<GardenerDashboardChartValues> 
             kubeconfig = (await waitUntilVirtualClusterIsReady(log, values)).getKubeConfig().exportConfig();
         }
         return {
-            image: {
-                tag: version,
-            },
-            apiServerUrl: values.apiserver.url,
-            apiServerCa: values.apiserver.tls.ca.cert,
-            frontendConfig: {
-                seedCandidateDeterminationStrategy: 'SameRegion',
-            },
-            kubeconfig,
-            sessionSecret: values['gardener-dashboard'].sessionSecret,
-            ingress: {
-                tls: {
-                    secretName: values.wildcardSecretName,
+            global: {
+                dashboard: {
+                    image: {
+                        tag: version,
+                    },
+                    apiServerUrl: values.apiserver.url,
+                    apiServerCa: values.apiserver.tls.ca.cert,
+                    frontendConfig: {
+                        seedCandidateDeterminationStrategy: 'SameRegion',
+                    },
+                    kubeconfig,
+                    sessionSecret: values['gardener-dashboard'].sessionSecret,
+                    ingress: {
+                        tls: {
+                            secretName: values.wildcardSecretName,
+                        },
+                        hosts: [values.gardenerHost],
+                    },
+                    oidc: {
+                        clientId: 'dashboard',
+                        issuerUrl: values.issuerUrl,
+                        clientSecret: values.identity.dashboardClientSecret,
+                    },
                 },
-                hosts: [values.gardenerHost],
-            },
-            oidc: {
-                issuerUrl: values.issuerUrl,
-                clientSecret: values.identity.dashboardClientSecret,
             },
         };
     }

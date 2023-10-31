@@ -290,6 +290,14 @@ class GardenletChart extends Chart<GardenletValues> {
     }
 
     private gardenletConfig(values: GardenletValues) {
+        const featureGates = {
+            ...values.gardener.featureGates,
+            ...values.gardener.soil.gardenlet?.featureGates,
+        };
+        if (this.version.compare('1.70.0') >= 0) {
+            delete(featureGates['ManagedIstio']);
+            delete(featureGates['ReversedVPN']);
+        }
         return {
             ...values.gardener.soil.gardenlet,
             gardenClientConnection: {
@@ -303,10 +311,7 @@ class GardenletChart extends Chart<GardenletValues> {
                     namespace: GardenerNamespace,
                 },
             },
-            featureGates: {
-                ...values.gardener.featureGates,
-                ...values.gardener.soil.gardenlet?.featureGates,
-            },
+            featureGates,
             seedConfig: {
                 apiVersion: 'core.gardener.cloud/v1beta1',
                 kind: 'Seed',
