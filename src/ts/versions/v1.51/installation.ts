@@ -34,7 +34,9 @@ export class Installation extends Installation_1_50 {
                 throw validateState(stateValues);
             }
             this.currentApiServerVersion = new SemVer(stateValues.apiserver.version ?? 'v1.18.2');
-            stateValues.apiserver.version = targetVirtualClusterVersion.raw;
+            if (new SemVer(this.currentApiServerVersion).compareMain(targetVirtualClusterVersion) === -1) {
+                stateValues.apiserver.version = targetVirtualClusterVersion.raw;
+            }
         }
         await super.install(flow, stateValues, inputValues);
     }
@@ -58,6 +60,7 @@ export class Installation extends Installation_1_50 {
             });
             steps.push(latestVirtualClusterStep);
         }
+        log.info(`virtual cluster is at ${this.currentApiServerVersion.raw}`);
         return steps;
     }
 }

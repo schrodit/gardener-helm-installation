@@ -14,6 +14,7 @@ export class VirtualClusterChart extends Chart<VirtualClusterChartValues> {
     }
 
     public async renderValues(values: VirtualClusterChartValues): Promise<Values> {
+        console.log('virtual cluster',  values.apiserver.version);
         return {
             name: 'virtual-cluster',
             apiServer: {
