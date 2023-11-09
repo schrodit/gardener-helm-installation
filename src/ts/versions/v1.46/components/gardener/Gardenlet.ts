@@ -324,6 +324,11 @@ class GardenletChart extends Chart<GardenletValues> {
     }
 
     private seedConfig(values: GardenletValues) {
+        if (this.version.compare('1.72.0') >= 0) {
+            if (values.gardener.soil.settings?.ownerChecks?.enabled) {
+                values.gardener.soil.settings.ownerChecks.enabled = false;
+            }
+        }
         return {
             provider: {
                 type: values.hostCluster.provider,

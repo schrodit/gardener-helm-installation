@@ -1,5 +1,5 @@
 
-version: v1.71.6
+version: v1.72.3
 
 landscapeName: gardener-installation
 
@@ -51,5 +51,6 @@ gardener:
     #     foo: bar
       verticalPodAutoscaler:
         enabled: true # a Gardener-managed VPA deployment is enabled
+      # deprecated
       ownerChecks:
-        enabled: true # owner checks are enabled for shoots scheduled on this seed
+        enabled: false
