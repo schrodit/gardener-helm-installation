@@ -298,6 +298,9 @@ class GardenletChart extends Chart<GardenletValues> {
             delete(featureGates['ManagedIstio']);
             delete(featureGates['ReversedVPN']);
         }
+        if (this.version.compare('1.73.0') >= 0) {
+            delete(featureGates['APIServerSNI']);
+        }
         return {
             ...values.gardener.soil.gardenlet,
             gardenClientConnection: {
