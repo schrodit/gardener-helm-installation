@@ -8,8 +8,11 @@ import {createLogger} from '../../../../log/Logger';
 import {KubeClient} from '../../../../utils/KubeClient';
 import {Chart, Helm, RemoteChartFromZip, Values} from '../../../../plugins/Helm';
 import {deepMergeObject} from '../../../../utils/deepMerge';
-import {base64EncodeMap, getKubeConfigForServiceAccount} from '../../../../utils/kubernetes';
+import {base64EncodeMap, createOrUpdate, enrichKubernetesError, getKubeConfigForServiceAccount} from '../../../../utils/kubernetes';
 import {GardenerChartBasePath, GardenerRepoZipUrl} from './Gardener';
+import { SecretRef } from '../Backup';
+import { createSecret } from '../../../../state/KubernetesState';
+import { retryWithBackoff } from '../../../../utils/exponentialBackoffRetry';
 
 const log = createLogger('Gardener');
 
@@ -79,6 +82,10 @@ export class Controlplane extends Task {
             this.virtualClient = await waitUntilVirtualClusterIsReady(log, this.values);
         }
 
+        log.info('Create Gardener Controlplane Secrets');
+        this.createDnsSecret(`${this.values.gardener.shootDomainPrefix}.${this.values.host}`, 'default');
+        this.createDnsSecret(`internal.${this.values.host}`, 'internal');
+
         log.info('Install Gardener Controlplane');
 
         const gardenerValues = this.getValues();
@@ -95,6 +102,44 @@ export class Controlplane extends Task {
         await this.helm.createOrUpdate(await runtimeHelmChart.getRelease(this.values));
     }
 
+    private async createDnsSecret(
+        domain: string,
+        type: 'internal' | 'default',
+    ): Promise<SecretRef> {
+        if (!this.virtualClient) {
+            throw new Error('Virtual cluster missing');
+        }
+        const name = `${type}-domain-${domain.replaceAll('.', '-')}`;
+        const secret = createSecret(GardenerNamespace, name);
+        log.info(`Creating ${type} dns secret "${name}"`);
+        await retryWithBackoff(async (): Promise<boolean> => {
+            if (this.dryRun) {
+                return true;
+            }
+            try {
+                await createOrUpdate(this.virtualClient!, secret, async (): Promise<void> => {
+                    secret.metadata!.labels = {
+                        'gardener.cloud/role': `${type}-domain`,
+                    };
+                    secret.metadata!.annotations = {
+                        'dns.gardener.cloud/provider': this.values.dns.provider,
+                        'dns.gardener.cloud/domain': domain,
+                    };
+                    secret.stringData = this.values.dns.credentials;
+                });
+                return true;
+            } catch (error) {
+                log.error(enrichKubernetesError(secret, error));
+            }
+            return false;
+        });
+
+        return {
+            name,
+            namespace: GardenerNamespace,
+        };
+    }
+
     private getValues() {
         return {
             global: {
@@ -102,6 +147,7 @@ export class Controlplane extends Task {
                 controller: this.controllerValues(),
                 admission: this.admissionValues(),
                 scheduler: this.schedulerValues(),
+                // TODO(schrodit): deprecated since Gardener 1.77
                 defaultDomains: [{
                     domain: `${this.values.gardener.shootDomainPrefix}.${this.values.host}`,
                     provider: this.values.dns.provider,

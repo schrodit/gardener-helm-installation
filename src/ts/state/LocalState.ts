@@ -5,7 +5,7 @@ import {deepMergeObject} from '../utils/deepMerge';
 import {NotFound} from '../utils/exceptions';
 import {KeyValueState, State} from './State';
 
-export class LocalState<T> implements State<T> {
+export class LocalState<T extends object> implements State<T> {
 
     constructor(
         private readonly stateFile: string,

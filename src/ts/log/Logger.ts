@@ -90,7 +90,7 @@ export class Logger {
 
     private log(level: LogLevel, msg: string, labels?: Labels) {
         this.collector.logger.log(level, msg, {
-            labels: deepMergeObject(labels, this.labels),
+            labels: deepMergeObject(labels ?? {}, this.labels),
         });
     }
 }

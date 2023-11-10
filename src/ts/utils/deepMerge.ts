@@ -8,7 +8,7 @@ import {has} from './has';
  * @param source
  * @returns The target instance as given, merged
  */
- export const deepMergeObject = <T, S>(target: T, source: S): T & S => {
+ export const deepMergeObject = <T extends object, S>(target: T, source: S): T & S => {
     if (!has(source)) {
         return target as T & S;
     }

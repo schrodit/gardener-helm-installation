@@ -87,7 +87,7 @@ class KubernetesStateBase<T> {
     }
 }
 
-export class KubernetesState<T> extends KubernetesStateBase<T> implements State<T> {
+export class KubernetesState<T extends object> extends KubernetesStateBase<T> implements State<T> {
 
     constructor(
         kubeClient: KubeClient,
