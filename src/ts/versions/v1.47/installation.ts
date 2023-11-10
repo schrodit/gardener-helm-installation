@@ -25,7 +25,6 @@ export class Installation extends Installation_1_46 {
                 throw new Error('State values invalid');
             }
             if (has(stateValues.apiserver.tls) && stateValues.apiserver.tls.ca.messageDigest !== MessageDigest.SHA384) {
-                console.log(stateValues.apiserver.tls.ca.messageDigest);
                 delete stateValues.apiserver.tls;
             }
             if (has(stateValues.apiserver.aggregator.tls) && stateValues.apiserver.aggregator.tls.ca.messageDigest !== MessageDigest.SHA384) {
