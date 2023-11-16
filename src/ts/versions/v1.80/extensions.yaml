@@ -34,12 +34,9 @@ gardener:
   
     provider-equinix:
       enabled: true
-      version: v2.9.0
+      version: v2.10.0
       controllerRegistration:
         repositoryName: gardener-extension-provider-equinix-metal
-      values:
-        image:
-          tag: v2.10.0-dev-6b7b511317539bc6b47b2702cda4d621b6d1f6ee
 
     networking-cilium:
       enabled: true
