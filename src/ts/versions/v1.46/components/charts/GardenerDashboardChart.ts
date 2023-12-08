@@ -62,6 +62,10 @@ export class GardenerDashboardChart extends Chart<GardenerDashboardChartValues> 
                         clientId: 'dashboard',
                         issuerUrl: values.issuerUrl,
                         clientSecret: values.identity.dashboardClientSecret,
+                        public: {
+                            clientId: 'kube-kubectl',
+                            clientSecret: values.identity.kubectlClientSecret,
+                        },
                     },
                 },
             },
