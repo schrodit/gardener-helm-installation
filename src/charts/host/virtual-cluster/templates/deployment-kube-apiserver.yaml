@@ -75,7 +75,7 @@ spec:
         operator: Exists
       containers:
       - name: kube-apiserver
-        image: {{ .Values.images.repositories.apiserver }}:{{ .Values.images.tag }}
+        image: "{{ include "garden.registry" . }}/{{ .Values.images.repositories.apiserver }}:{{ .Values.images.tag }}"
         imagePullPolicy: IfNotPresent
         command:
         - /usr/local/bin/kube-apiserver
@@ -96,7 +96,6 @@ spec:
 {{ end }}
         - --external-hostname={{ .Values.apiServer.hostname }}
         - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
-        - --insecure-port=0
 {{ if .Values.apiServer.oidcIssuerURL }}
         - --oidc-issuer-url={{ .Values.apiServer.oidcIssuerURL }}
         - --oidc-client-id=kube-kubectl

@@ -16,8 +16,8 @@ namespace: xxx
 serviceName: garden-kube-apiserver
 images:
   repositories:
-    apiserver: 'k8s.gcr.io/kube-apiserver'
-    controller-manager: 'k8s.gcr.io/kube-controller-manager'
+    apiserver: kube-apiserver
+    controller-manager: kube-controller-manager
   tag: v1.18.3
 
 

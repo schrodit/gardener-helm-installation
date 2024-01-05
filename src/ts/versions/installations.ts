@@ -12,6 +12,8 @@ import {Installation as Installation_1_50} from './v1.50/installation';
 import {Installation as Installation_1_51} from './v1.51/installation';
 import {Installation as Installation_1_62} from './v1.62/installation';
 import {Installation as Installation_1_74} from './v1.74/installation';
+import {Installation as Installation_1_80} from './v1.80/installation';
+import {Installation as Installation_1_81} from './v1.81/installation';
 
 export type InstallationConfig = {
     genDir: string,
@@ -71,7 +73,8 @@ const versions: Record<string, InstallationConstructor> = {
     'v1.77.x': Installation_1_74,
     'v1.78.x': Installation_1_74,
     'v1.79.x': Installation_1_74,
-    'v1.80.x': Installation_1_74,
+    'v1.80.x': Installation_1_80,
+    'v1.81.x': Installation_1_81,
 };
 
 export class VersionNotFound extends Exception {

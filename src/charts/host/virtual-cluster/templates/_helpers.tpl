@@ -74,3 +74,11 @@ users:
     client-certificate-data: {{ .Values.tls.admin.crt | b64enc }}
     client-key-data: {{ .Values.tls.admin.key | b64enc }}
 {{- end -}}
+
+{{- define "garden.registry" -}}
+{{- if semverCompare ">=1.24" .Values.images.tag -}}
+registry.k8s.io
+{{- else -}}
+k8s.gcr.io
+{{- end -}}
+{{- end -}}

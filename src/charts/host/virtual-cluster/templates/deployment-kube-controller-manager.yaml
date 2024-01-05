@@ -53,7 +53,7 @@ spec:
         operator: Exists
       containers:
       - name: kube-controller-manager
-        image: {{ index .Values.images.repositories "controller-manager" }}:{{ .Values.images.tag }}
+        image: "{{ include "garden.registry" . }}/{{ index .Values.images.repositories "controller-manager" }}:{{ .Values.images.tag }}"
         imagePullPolicy: IfNotPresent
         command:
         - /usr/local/bin/kube-controller-manager
