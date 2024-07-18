@@ -64,7 +64,9 @@ export class Installation implements IInstallation {
             helmTaskFactory.createTask(new DnsControllerChart()),
             helmTaskFactory.createTask(new HostConfigurationChart()),
             helmTaskFactory.createTask(new NetworkPoliciesChart()),
-            helmTaskFactory.createTask(new IdentityChart()),
+            ...values.identity.enabled !== false
+                ? [helmTaskFactory.createTask(new IdentityChart())]
+                : [],
             helmTaskFactory.createTask(new EtcdMainChart()),
             helmTaskFactory.createTask(new EtcdEventsChart()),
             helmTaskFactory.createTask(new VirtualClusterChart()),
