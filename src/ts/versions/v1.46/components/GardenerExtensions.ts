@@ -11,7 +11,7 @@ import {KubeClient} from '../../../utils/KubeClient';
 import {DownloadManager} from '../../../utils/DownloadManager';
 import {RawManifest} from '../../../plugins/KubeApply';
 import {isV1Beta1ControllerRegistration, LabelSelector, V1Beta1ControllerRegistration} from '../../../api/ControllerRegistration';
-import {isV1Beta1DeploymentRegistration, V1Beta1ControllerDeployment} from '../../../api/ControllerDeployment';
+import {isV1Beta1DeploymentRegistration, isV1DeploymentRegistration, V1Beta1ControllerDeployment, V1ControllerDeployment} from '../../../api/ControllerDeployment';
 import {deepMergeObject} from '../../../utils/deepMerge';
 import {trimPrefix} from '../../../utils/trimPrefix';
 import {waitUntilVirtualClusterIsReady} from './VirtualCluster';
@@ -85,7 +85,11 @@ export class GardenerExtensionsTask extends Task {
             }
             validateExtension(extension);
             const registration = await this.getRegistration(name, extension);
-            const manifest = new RawManifest(name, registration.deployment, registration.registration);
+            const regManifest = registration.deploymentV1beta1 ?? registration.deploymentV1;
+            if (!regManifest) {
+                throw new Error(`Registration object is missing for ${extension}`);
+            }
+            const manifest = new RawManifest(name, regManifest, registration.registration);
             tasks.push(this.applyFactory.createTask(manifest, this.virtualClient));
         }
         return tasks;
@@ -107,10 +111,16 @@ export class GardenerExtensionsTask extends Task {
         )).map(doc => doc.toJSON());
         const reg: ControllerRegistration = {
             registration: registration.find(doc => isV1Beta1ControllerRegistration(doc)),
-            deployment: registration.find(doc => isV1Beta1DeploymentRegistration(doc)),
+            deploymentV1beta1: registration.find(doc => isV1Beta1DeploymentRegistration(doc)),
+            deploymentV1: registration.find(doc => isV1DeploymentRegistration(doc)),
         };
 
-        reg.deployment.providerConfig.values = deepMergeObject(reg.deployment.providerConfig.values, this.getDeploymentValues(extension));
+        if (reg.deploymentV1beta1) {
+            reg.deploymentV1beta1.providerConfig.values = deepMergeObject(reg.deploymentV1beta1.providerConfig.values, this.getDeploymentValues(extension));
+        } else if (reg.deploymentV1) {
+            reg.deploymentV1.helm.values = deepMergeObject(reg.deploymentV1.helm.values, this.getDeploymentValues(extension));
+        }
+        
 
         for (const i in reg.registration.spec.resources) {
             if (extension.primary === false) {
@@ -135,7 +145,8 @@ export class GardenerExtensionsTask extends Task {
 
 interface ControllerRegistration {
     registration: V1Beta1ControllerRegistration,
-    deployment: V1Beta1ControllerDeployment,
+    deploymentV1beta1?: V1Beta1ControllerDeployment,
+    deploymentV1?: V1ControllerDeployment,
 }
 
 const validateExtension = (extension: GardenerExtension): void => {
