@@ -1,0 +1,107 @@
+
+gardener:
+  extensions:
+    os-coreos:
+      enabled: true
+      version: v1.21.1
+      controllerRegistration:
+        repositoryName: gardener-extension-os-coreos
+      values:
+        image:
+          repository: europe-docker.pkg.dev/gardener-project/releases/extensions/os-coreos
+    
+    os-ubuntu:
+      enabled: true
+      version: v1.25.0
+      controllerRegistration:
+        repositoryName: gardener-extension-os-ubuntu
+    
+    os-gardenlinux:
+      enabled: true
+      version: v0.24.0
+      controllerRegistration:
+        repositoryName: gardener-extension-os-gardenlinux
+
+    provider-gcp:
+      enabled: true
+      version: v1.36.2
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-gcp
+
+    provider-openstack:
+      enabled: true
+      version: v1.40.1
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-openstack
+
+    provider-dns-cloudflare:
+      enabled: true
+      version: v0.0.6
+      controllerRegistration:
+        org: schrodit
+        repositoryName: gardener-extension-provider-dns-cloudflare
+  
+    provider-equinix:
+      enabled: true
+      version: v2.11.0
+      controllerRegistration:
+        repositoryName: gardener-extension-provider-equinix-metal
+
+    networking-cilium:
+      enabled: true
+      version: v1.35.0
+      controllerRegistration:
+        repositoryName: gardener-extension-networking-cilium
+
+    networking-calico:
+      enabled: true
+      version: v1.39.1
+      controllerRegistration:
+        repositoryName: gardener-extension-networking-calico
+
+    shoot-dns-service:
+      enabled: true
+      global: true
+
+      version: v1.48.0
+      controllerRegistration:
+        repositoryName: gardener-extension-shoot-dns-service
+
+      values:
+        dnsProviderReplication:
+          enabled: true
+        dnsProviderManagement:
+          enabled: true
+        dnsControllerManager:
+          configuration:
+            cacheTtl: 300
+            controllers: dnscontrollers,dnssources
+            dnsPoolResyncPeriod: 30m
+            #poolSize: 20
+            #providersPoolResyncPeriod: 24h
+            serverPortHttp: 8080
+          createCRDs: false
+          deploy: true
+          replicaCount: 1
+          #resources:
+          #  limits:
+          #    memory: 1Gi
+          #  requests:
+          #    cpu: 50m
+          #    memory: 500Mi
+
+    shoot-cert-service:
+      enabled: true
+      global: true
+
+      version: v1.44.0
+      controllerRegistration:
+        repositoryName: gardener-extension-shoot-cert-service
+
+      values:
+        certificateConfig:
+          defaultIssuer:
+            acme:
+              email: foo@example.com
+              server: https://acme-v02.api.letsencrypt.org/directory
+            name: default-issuer
