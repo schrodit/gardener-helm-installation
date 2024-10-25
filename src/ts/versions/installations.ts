@@ -82,6 +82,7 @@ const versions: Record<string, InstallationConstructor> = {
     'v1.86.x': Installation_1_81,
     'v1.87.x': Installation_1_81,
     'v1.88.x': Installation_1_81,
+    'v1.89.x': Installation_1_81,
 };
 
 export class VersionNotFound extends Exception {
