@@ -43,7 +43,7 @@ gardener:
   
     provider-equinix:
       enabled: true
-      version: v2.12.0
+      version: v2.13.0
       controllerRegistration:
         repositoryName: gardener-extension-provider-equinix-metal
 
